@@ -1,53 +1,55 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%                       Extract Epochs
+%                       Extract behavioural data from pilot
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Extract epochs from paradigm and store in MatLab struct
-% Data: Jos Becktepe, University of Kiel)
-% Author: Julius Welzel (j.welzel@neurologie.uni-kiel.de)
+% Intention tremor behave
+% Data: int_trmr_eeg (Jos Becktepe, University of Kiel)
+% Author: Julius Welzel, j.welzel@neurologie.uni-kiel.de
 
-% define paths
-PATHIN_raw = [MAIN '04_Data' filesep '00_raw' filesep];
-PATHOUT_prep = [MAIN '04_Data' filesep '01_prep' filesep];
+%% Set envir
 
-if ~exist(PATHOUT_prep);mkdir(PATHOUT_prep);end
+PATHIN      = [MAIN '04_data\00_main_pilot\'];
+PATHOUT     = [MAIN '04_data\01_prep_pilot\'];
 
-list = dir(fullfile([PATHIN_raw]));
-list = list(contains({list.name},'_isometric_tremor_loud'));
-SUBJ = extractBefore({list.name},'_isometric_tremor_loud');
+if ~isdir(PATHOUT); mkdir(PATHOUT); end
 
-nms_task = '_isometric_tremor_loud';
-%% define config vars
+list = dir(fullfile([PATHIN]));
+list = list(contains({list.name},'_isometric_'));
+SUBJ = extractBetween({list.name},'_','_iso');
 
-cfg.filer.HP = 0.1;
-cfg.filter.LP = 40;
-cfg.exp.n_trials = 120;
-
-save(cfg,[PATHOUT_prep 'cfg.mat']);
+nms_task = '_isometric_tremor';
 
 %% Loop over subs
 
-for s = 1:numel(SUBJ)
+for s = [11,12]%1:numel(SUBJ)
     
+    clear eps
     display(['Working in SUBJ ' SUBJ{s}])
+    if strcmp(SUBJ{s},'p004') % skip corrupted datasets
+        continue;
+    end
     
     % load data
-    tmp     = load_xdf([PATHIN_raw SUBJ{s} nms_task '.xdf']); %full xdf file
+    tmp     = load_xdf([PATHIN 'pilot_' SUBJ{s} nms_task '.xdf']); %full xdf file
 
+    emg = findLslStream(tmp,'Delsys');
     ppl = findLslStream(tmp,'pupil_capture');
     fsr = findLslStream(tmp,'HX711');
     mrk = findLslStream(tmp,'PsychoPyMarkers');
 
     % preprocess data
-    ppl_prep = prep_ppl_it(ppl); %Improve new_time vector in the future
+%     emg = prep_emg_it(emg);
+%     ppl_prep = prep_ppl_it(ppl); %Improve new_time vector in the future
     
     %% Extract marker and max force
     
     idx_ep_all = find(contains(mrk.time_series,'epoch'));
         
     max_f = str2num(extractAfter(mrk.time_series{1},'max_force_'));
+    if strcmp(SUBJ(s),'p001'); max_f = 7262; idx_ep_all(end) = [];  end
+
 
     eps.ID = SUBJ(s);
     eps.max_force = max_f;
@@ -72,13 +74,15 @@ for s = 1:numel(SUBJ)
         [eps(e).fs_trial eps(e).fs_ts]      = tsBetweenMrks(fsr,idx_ep_all(e)+3,idx_ep_all(e)+4,mrk);
         
         % extract per trial parts of pupil labs
-        [eps(e).ppl_trial eps(e).ppl_ts]    = tsBetweenMrks(ppl_prep,idx_ep_all(e),idx_ep_all(e)+4,mrk);
+%         [eps(e).ppl_trial eps(e).ppl_ts]    = tsBetweenMrks(ppl_prep,idx_ep_all(e),idx_ep_all(e)+4,mrk);
 
+        % extract per trial parts of emg
+%         [eps(e).emg_trial eps(e).emg_ts]    = tsBetweenMrks(emg,idx_ep_all(e),idx_ep_all(e)+4,mrk);
 
     end
        
 
-%     save([PATHOUT SUBJ{s} '_epData.mat'],'eps');
+    save([PATHOUT SUBJ{s} '_epData.mat'],'eps');
     
     
 

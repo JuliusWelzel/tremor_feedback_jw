@@ -1,30 +1,25 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%                       Setup library for Master
+%                       Setup envir
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Gait something
-% Data: dummy_proj (Walter Maetzler, University of Kiel)
-% Author: nicht Walter Maetzler
+% tremor feedback
+% Data: Jos Becktepe, University of Kiel
+% Author: Julius Welzel (j.welzel@neurologie.uni-kiel.de)
 
 clc; clear all; close all;
 
-MAIN = 'C:\Users\juliu\Desktop\NeuroGeri_UKSH\dummy_proj\';
+MAIN = [fileparts(pwd) '\'];
 addpath(genpath(MAIN));
+addpath([userpath '\toolboxes\eeglab2021.0\']);
+addpath([userpath '\toolboxes\fieldtrip-20201023\']);
 
-path_data = [MAIN '04_Data\'];
 
 %Change MatLab defaults
 set(0,'defaultfigurecolor',[1 1 1]);
-% Change default axes fonts.
-set(0,'DefaultAxesFontName', 'CMU Sans Serif')
-% Change default text fonts.
-set(0,'DefaultTextFontname', 'CMU Sans Serif')
-
 
 %colors
-% https://blog.graphiq.com/finding-the-right-color-palettes-for-data-visualizations-fcd4e707a283
-
-
-
+color.c_vo = hex2rgb('#5e3f5d');
+color.c_av = hex2rgb('#cd4c31');
+color.c_ao = hex2rgb('#f7a51e');

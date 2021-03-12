@@ -20,7 +20,7 @@ EEG.nbchan = size(EEG.data,1);
 EEG.pnts   = size(EEG.data,2);
 [EEG h f] = pop_eegfiltnew(EEG,fl,fh);
 
-%rektify
+%rectify
 EEG.data_rek = abs(EEG.data - mean(EEG.data));
 data = EEG.data_rek;
 
