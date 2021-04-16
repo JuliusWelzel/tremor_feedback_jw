@@ -80,9 +80,9 @@ for s = 1:numel(SUBJ)
 
         
         %% extract single trial values
-        eps(e).rmse_raw = sqrt(mean(...
+        eps(e).rmse_raw = real(sqrt(mean(...
             eps(e).fs_trial(80:end) - eps(e).frc_con * eps(1).max_force ...
-            / (eps(e).frc_con * eps(1).max_force).^2));
+            / (eps(e).frc_con * eps(1).max_force).^2)));
         eps(e).AudioCondition = 'Loudness';
         
         %% extract power values per trial 
@@ -111,9 +111,12 @@ for s = 1:numel(SUBJ)
         eps(cont_e).frc_con      = str2num(extractAfter(mrk_fly.time_series{idx_ep_all(e)+3},'sfc_'));
         eps(cont_e).scl          = str2num(string(extractBetween(mrk_fly.time_series{idx_ep_all(e)+3},'sfb_','_sfc')));
         
-        if e < 11
+        idx_bl_all = find(contains(mrk_fly.time_series,'block'));
+        num_trial_block = (diff(idx_bl_all) -1) / 5;
+
+        if e < num_trial_block(1);
             eps(cont_e).block = "training";
-        elseif e >= 10
+        elseif e num_trial_block(1);
             eps(cont_e).block = "active";  
         end
  
@@ -132,9 +135,9 @@ for s = 1:numel(SUBJ)
 
         
         %% extract single trial values after 1,5 second of onset
-        eps(cont_e).rmse_raw = sqrt(mean(...
+        eps(cont_e).rmse_raw = real(sqrt(mean(...
             eps(cont_e).fs_trial(80:end) - eps(cont_e).frc_con * eps(1).max_force ...
-            / (eps(e).frc_con * eps(1).max_force).^2));
+            / (eps(e).frc_con * eps(1).max_force).^2)));
         eps(cont_e).AudioCondition = "Schwebung";
         
         %% extract power values per trial 
@@ -179,9 +182,11 @@ for s = 1:numel(SUBJ)
 
     save_fig(gcf,PATHOUT_plot,[SUBJ{s} '_all_trials'])
     
-    display(['Done with ' SUBJ{s}])
+    eps = singleTrialPupil(s,eps); % only extract data after training trials
+
     save([PATHOUT_prep SUBJ{s} '_epData.mat'],'eps');
     
+    %% transfer 
     all_trials(s).ID                = repmat(string(SUBJ{s}),numel(eps),1)';
     all_trials(s).TrialNumber       = [eps.num];
     all_trials(s).ForceCondition    = [eps.frc_con];
@@ -189,19 +194,38 @@ for s = 1:numel(SUBJ)
     all_trials(s).FeedbackCondition = [eps.fdbck_con];
     all_trials(s).ActivePassive     = [eps.block];
     all_trials(s).AuditiveCondition = [eps.AudioCondition];
+    
+    % sensor data
     all_trials(s).RMSE              = [eps.rmse_raw];
-    all_trials(s).pow03             = [eps.pow03];
-    all_trials(s).pow412            = [eps.pow412];
+    all_trials(s).out_rmse          = isoutlier([eps.rmse_raw]);
+    all_trials(s).pow03             = zscore([eps.pow03]);
+    all_trials(s).pow412            = zscore([eps.pow412]);
+    all_trials(s).out_pow           = isoutlier([eps.pow412]);
+    
+    % pupil data
+    all_trials(s).ppl_sz_l          = [eps.ppl_sz_trl_l];
+    all_trials(s).out_ppl_sz_l      = isoutlier([eps.ppl_sz_trl_l]);
+    all_trials(s).ppl_sz_r          = [eps.ppl_sz_trl_r];
+    all_trials(s).out_ppl_sz_r      = isoutlier([eps.ppl_sz_trl_r]);
    
+    [all_trials(s).fs_pow_4_12,all_trials(s).fs_spec,all_trials(s).fs_freqs,] = interpSingleTrialData(eps);    
+     
+    waterfALL(all_trials,s);
+    save_fig(gcf,PATHOUT_plot,[SUBJ{s} 'all_trials']);
+
+    display(['Done with ' SUBJ{s}])
 
 
 end
 
 tab = table([all_trials.ID]',[all_trials.TrialNumber]',[all_trials.ForceCondition]',[all_trials.Scaling]',...
     [all_trials.FeedbackCondition]',[all_trials.ActivePassive]',[all_trials.AuditiveCondition]',...
-    [all_trials.RMSE]',[all_trials.pow03]',[all_trials.pow412]');
+    [all_trials.RMSE]',[all_trials.out_rmse]',[all_trials.pow03]',[all_trials.pow412]',[all_trials.out_pow]',...
+    [all_trials.ppl_sz_l]',[all_trials.out_ppl_sz_l]',[all_trials.ppl_sz_r]',[all_trials.out_ppl_sz_r]');
 
-tab.Properties.VariableNames = {'ID','n','ForceCondition','Scaling','FeedbackCondition','ActivePassive','AuditiveCondition','RMSE','Power [0-3 Hz]','Power [4-12 Hz]'};
+tab.Properties.VariableNames = {'ID','n','ForceCondition','Scaling','FeedbackCondition','ActivePassive','AuditiveCondition',...
+    'RMSE','Outlier RMSE','Power [0-3 Hz]','Power [4-12 Hz]','Outlier Power',...
+    'Pupilsize left','Outlier Ppl l','Pupilsize right','Outlier Ppl r'};
 
 writetable(tab,[PATHOUT_prep 'overview_all_trials.csv'])
 
