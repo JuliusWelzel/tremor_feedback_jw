@@ -21,7 +21,14 @@ list = dir(fullfile([PATHIN]));
 list = list(contains({list.name},'epData'));
 SUBJ = extractBefore({list.name},'_');
 
+load([PATHIN 'all_trials.mat'])
+for i = 1:numel(all_trials)
+   try
+        nms_sub(i) = all_trials(i).ID(1);
+   end
+end
 
+idx_empty = isempty({all_trials.ID})
 %% Loop over subs
 
 for s = 1:numel(SUBJ)
@@ -31,47 +38,36 @@ for s = 1:numel(SUBJ)
     clear eps
     load([PATHIN SUBJ{s} '_epData.mat']);
     
+    eps = singleTrialPupil(s,eps);
 %     get appropriate epochs here 
     
     figure
     for p = 1:numel(eps)
-        hold on
         
-        switch eps(p).fdbck_con
-            
-            case "vo"
-                tmp_cc = color.c_vo;
-                
-                % force sensor
-                subplot(3,3,1)
-                ylabel 'Normalised targetforce [a.u.]'
-                title 'Visual'
-                plot(eps(p).fs_ts - eps(p).fs_ts(1), eps(p).fs_trial/(eps(p).frc_con * eps(1).max_force),'Color',tmp_cc)
-                hline(1,'--k')
+        hold on
+        % pupil data
+        ylabel 'BL_corrected pupil size [mm³]'
+        
+        %%
+        close all
+        plot(eps(p).ppl_trial(21,:))
+        hold on 
+        
+        windowSize = 20; 
+        b = (1/windowSize)*ones(1,windowSize);
+        a = 1;
+        y = filter(b,a,eps(p).ppl_trial(21,:));
+        y(eps(e).ppl_trial(1,:) < 0.8) = NaN;
+        plot(y)
+        hold on 
+        y_ = hampel(y,48,1);
+        plot(y_)
+        hold on
+        plot(eps(p).ppl_trial(1,:))
 
-                % pupil data
-                subplot(3,3,4)
-                ylabel 'BL_corrected pupil size [mm³]'
-                title 'Visual'
-                plot(eps(p).ppl_ts - eps(p).ppl_ts(1), hampel(eps(p).ppl_trial(22,:),20),'Color',tmp_cc)
-                hold on
-                plot(eps(p).ppl_ts - eps(p).ppl_ts(1), eps(p).ppl_trial(22,:))
+%%
 
-
-
-            case "va"
-                tmp_cc = color.c_av;
-                subplot(1,3,2)
-                xlabel 'Time [s]'
-                title 'Audio-visual'
-
-                
-            case "ao"
-                tmp_cc = color.c_ao;
-                subplot(1,3,3)
-                xlabel 'Time [s]'
-                title 'Audio'
-        end
+    end
         
         
     end
@@ -80,9 +76,10 @@ for s = 1:numel(SUBJ)
     subplot(3,3,7)
     ylabel 'Scale [a.u.]'
     title 'Visual'
+    save_fig(gcf,PATHOUT_plots,[SUBJ{s} '_pupil_data'],'fontsize',12,'figsize',[0 0 50 30]);
 
-    
-    waterfALL(s);
+
+    waterfALL(all_trials,s);
     save_fig(gcf,PATHOUT_plots,[SUBJ{s} '_ss_fft'],'fontsize',12,'figsize',[0 0 50 30]);
 end
 

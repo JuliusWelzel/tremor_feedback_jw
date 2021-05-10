@@ -1,4 +1,4 @@
-function eps = singleTrialPupil(s,eps)
+function eps = singleTrialPupil(eps)
 % singleTrialPupil: Function to  extract pupil diameter from preprocessed pupilabs data
 % and detect blink onsets
 %     
@@ -17,17 +17,82 @@ function eps = singleTrialPupil(s,eps)
 % Author: (Julius Welzel, University of Kiel, 2021)
 
 %% Loop over every epoch and correct blinks
+figure
+
+for e = 1:numel(eps)
+    
+    windowSize = 20; 
+    b = (1/windowSize)*ones(1,windowSize);
+    a = 1;
+    
+    % left eye
+    le = filter(b,a,eps(e).ppl_trial(21,:));
+    le(eps(e).ppl_trial(1,:) < 0.8) = NaN;
+    eps(e).ppl_sz_left = hampel(le,48,1);
+
+    % right eye
+    re = filter(b,a,eps(e).ppl_trial(22,:));
+    re(eps(e).ppl_trial(1,:) < 0.8) = NaN;
+    eps(e).ppl_sz_right = hampel(re,48,1);
+   
+    %% find fix cross and take previous 120 sample ~0.5 s
+    idx_bl              = find(contains(eps(e).mrk_trial,'fix_cross'));
+    [neg bl_idx_end]    = min((eps(e).ppl_ts - eps(e).mrk_ts(idx_bl)).^2);
+
+    % find trial end and take previous 120 sample ~0.5 s
+    idx_trl              = find(contains(eps(e).mrk_trial,'trial_start'));
+    [neg trl_idx_end]    = min((eps(e).ppl_ts - eps(e).mrk_ts(idx_bl)).^2);
+
+    % extract ts
+    sz_bls(e,:)   = nanmean([eps(e).ppl_sz_left(1,bl_idx_end + 120:bl_idx_end + 240);...
+                    eps(e).ppl_sz_right(1,bl_idx_end + 120:bl_idx_end + 240)],2);
+    sz_trl(e,:)   = nanmean([eps(e).ppl_sz_left(1,trl_idx_end + 120:end) - sz_bls(e,1)';...
+                    eps(e).ppl_sz_right(1,trl_idx_end + 120:end) - sz_bls(e,2)'],2);  
+    
+    %% store data for long table
+    eps(e).ppl_sz_bl_l        = sz_bls(e,1);
+    eps(e).ppl_sz_trl_l       = sz_trl(e,1);
+
+    eps(e).ppl_sz_bl_r        = sz_bls(e,2);
+    eps(e).ppl_sz_trl_r       = sz_trl(e,2);
+
+    subplot(2,2,1)
+    plot(eps(e).ppl_ts - eps(e).ppl_ts(1),eps(e).ppl_trial(21,:),'Color',[.8 .8 .8])
+    title 'Left Eye Raw'
+    hold on
+    ylabel 'Pupil Size[mm³]'
+
+    subplot(2,2,2)
+    plot(eps(e).ppl_ts - eps(e).ppl_ts(1),eps(e).ppl_sz_left,'Color',[.8 .8 .8])
+    title 'Left Eye Filt'
+    hold on
+    
+    subplot(2,2,3)
+    plot(eps(e).ppl_ts - eps(e).ppl_ts(1),eps(e).ppl_trial(21,:),'Color',[.8 .8 .8])
+    title 'Right Eye Raw'
+    hold on
+    ylabel 'Pupil Size[mm³]'
+    
+    subplot(2,2,4)
+    plot(eps(e).ppl_ts - eps(e).ppl_ts(1),eps(e).ppl_sz_right,'Color',[.8 .8 .8])
+    title 'Right Eye Filt'
+    hold on
+    xlabel 'Time [s]'
+
+end
+
+%% 
+%{
 
 for e = 1:numel(eps) % only start after training epoch
     
     % prep data
-    eps(e).ppl_trial(21,eps(e).ppl_trial(1,:) < 0.5) = NaN
+    eps(e).ppl_trial(21,eps(e).ppl_trial(1,:) < 0.6) = NaN;
     eps(e).ppl_trial(21,:) = hampel(eps(e).ppl_trial(21,:),4,2);
-
     
-    eps(e).ppl_trial(22,eps(e).ppl_trial(1,:) < 0.5) = NaN
+    eps(e).ppl_trial(22,eps(e).ppl_trial(1,:) < 0.6) = NaN;
     eps(e).ppl_trial(22,:) = hampel(eps(e).ppl_trial(22,:),4,2);
-    
+      
     clear blinks
     idx_blink_onset     = find(diff(eps(e).ppl_trial(1,:))< -0.45); %sudden drop in confidence of more than 0.45
     
@@ -38,7 +103,7 @@ for e = 1:numel(eps) % only start after training epoch
         tmp_conf = eps(e).ppl_trial(1,:);
         idx_norm_conf = find(tmp_conf(idx_blink_onset(b)+1:end)     >=  tmp_conf(idx_blink_onset(b)+1)+0.45,1); % find idx when confidence returns to normal
         
-        if idx_norm_conf < 10  % blink must be longer than 10 samples, @120Hz srate ~ 80ms
+        if idx_norm_conf < 5  % blink must be longer than 48 samples, @240Hz srate ~ 200ms, as PupiLCore
             continue
         elseif isempty(idx_norm_conf)
             idx_norm_conf = length(eps(e).ppl_trial(1,:));
@@ -133,8 +198,8 @@ end
     
 end % fun
 
-%% 
-%{
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 close all
 figure
 subplot(2,1,1)

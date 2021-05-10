@@ -17,8 +17,10 @@ if ~exist(PATHOUT_prep);mkdir(PATHOUT_prep);end
 if ~exist(PATHOUT_plot);mkdir(PATHOUT_plot);end
 
 list = dir(fullfile([PATHIN_raw]));
-list = list(contains({list.name},'_isometric_tremor_loud'));
-SUBJ = extractBefore({list.name},'_isometric_tremor_loud');
+list_s = list(contains({list.name},'_isometric_tremor_loud'));
+SUBJ = extractBefore({list_s.name},'_isometric_tremor_loud');
+
+prob_info = readtable([PATHIN_raw list(contains({list.name},'rekrutierung')).name]);
 
 %% Loop over subs
 
@@ -26,6 +28,10 @@ for s = 1:numel(SUBJ)
     
     clear eps
     display(['Working in SUBJ ' SUBJ{s}])
+    
+    if contains(SUBJ{s},{'p114','p115'});continue;end
+    
+    try isempty(all_trials(s).ID);continue;end
     
     % load data from first paradigm
     tmp_loud     = load_xdf([PATHIN_raw SUBJ{s} '_isometric_tremor_loud.xdf']); %full xdf file
@@ -39,12 +45,19 @@ for s = 1:numel(SUBJ)
     idx_ep_all = find(contains(mrk_loud.time_series,'epoch'));
         
     max_f = str2num(extractAfter(mrk_loud.time_series{1},'max_force_'));
-
+    if isempty(max_f)
+        max_f = GetMaxForce(prob_info,SUBJ{s});
+    end
+    
     eps.ID = SUBJ(s);
     eps.max_force = max_f;
     
-    idx_bl_all = find(contains(mrk_loud.time_series,'block'));
-    num_trial_block = (diff(idx_bl_all) -1) / 5;
+    idx_blk_act     =  find(contains(mrk_loud.time_series,'block1'));
+    idx_blk_pas     =  find(contains(mrk_loud.time_series,'block3'));
+    if isempty(idx_blk_pas);idx_blk_pas = numel(mrk_loud.time_series);end
+
+    n_ep_train      = sum(strcmp(mrk_loud.time_series(1:idx_blk_act),'end_trial')); 
+    n_ep_activ      = sum(strcmp(mrk_loud.time_series(idx_blk_act:idx_blk_pas),'end_trial')); 
 
     %% Cut epochs and all infos and save results
     
@@ -57,13 +70,14 @@ for s = 1:numel(SUBJ)
         eps(e).scl          = str2num(string(extractBetween(mrk_loud.time_series{idx_ep_all(e)+3},'sfb_','_sfc')));
         
         
-        if e <= num_trial_block(1)
-            eps(e).block = 'training';
-        elseif e > num_trial_block(1) & e <= sum(num_trial_block(1:3))
-            eps(e).block = 'active';
-        elseif e > sum(num_trial_block(1:3))
-            eps(e).block = 'passive';  
+        if e <= n_ep_train;
+            eps(e).block = "training";
+        elseif e > n_ep_train & e <= n_ep_activ;
+            eps(e).block = "active";
+        elseif e > n_ep_activ;
+            eps(e).block = "passive";  
         end
+ 
  
         
         %% Extract time series idx_ep_all(e) is position of first marker per trial (epoch_"con")
@@ -92,6 +106,9 @@ for s = 1:numel(SUBJ)
     end
        
     %% load data from second paradigm
+    
+    if contains(SUBJ{s},{'p110','p111','p117'});continue;end
+
     tmp_fly     = load_xdf([PATHIN_raw SUBJ{s} '_isometric_tremor_fly.xdf']); %full xdf file
 
     ppl_fly = findLslStream(tmp_fly,'pupil_capture');
@@ -111,14 +128,21 @@ for s = 1:numel(SUBJ)
         eps(cont_e).frc_con      = str2num(extractAfter(mrk_fly.time_series{idx_ep_all(e)+3},'sfc_'));
         eps(cont_e).scl          = str2num(string(extractBetween(mrk_fly.time_series{idx_ep_all(e)+3},'sfb_','_sfc')));
         
-        idx_bl_all = find(contains(mrk_fly.time_series,'block'));
-        num_trial_block = (diff(idx_bl_all) -1) / 5;
+        idx_blk_act     =  find(contains(mrk_loud.time_series,'block1'));
+        idx_blk_pas     =  find(contains(mrk_loud.time_series,'block3'));
+        if isempty(idx_blk_pas);idx_blk_pas = numel(mrk_loud.time_series);end;
 
-        if e < num_trial_block(1);
+        n_ep_train      = sum(strcmp(mrk_loud.time_series(1:idx_blk_act),'end_trial')); 
+        n_ep_activ      = sum(strcmp(mrk_loud.time_series(idx_blk_act:idx_blk_pas),'end_trial')); 
+
+        if e <= n_ep_train;
             eps(cont_e).block = "training";
-        elseif e num_trial_block(1);
-            eps(cont_e).block = "active";  
+        elseif e > n_ep_train & e <= n_ep_activ;
+            eps(cont_e).block = "active";
+        elseif e > n_ep_activ;
+            eps(cont_e).block = "passive";  
         end
+ 
  
         
         %% Extract time series idx_ep_all(e) is position of first marker per trial (epoch_"con")
@@ -179,11 +203,12 @@ for s = 1:numel(SUBJ)
         plot(eps(p).fs_ts - eps(p).fs_ts(1), eps(p).fs_trial/(eps(p).frc_con * eps(1).max_force),'Color',tmp_cc)
         hline(1,'--k')
     end
+    save_fig(gcf,PATHOUT_plot,[SUBJ{s} 'all_trials_raw']);
 
-    save_fig(gcf,PATHOUT_plot,[SUBJ{s} '_all_trials'])
-    
-    eps = singleTrialPupil(s,eps); % only extract data after training trials
-
+    % plot extra stuff and save
+    eps = singleTrialPupil(eps);
+    save_fig(gcf,PATHOUT_plot,[SUBJ{s} 'pupil_data']);
+ 
     save([PATHOUT_prep SUBJ{s} '_epData.mat'],'eps');
     
     %% transfer 
@@ -211,12 +236,14 @@ for s = 1:numel(SUBJ)
     [all_trials(s).fs_pow_4_12,all_trials(s).fs_spec,all_trials(s).fs_freqs,] = interpSingleTrialData(eps);    
      
     waterfALL(all_trials,s);
-    save_fig(gcf,PATHOUT_plot,[SUBJ{s} 'all_trials']);
+    save_fig(gcf,PATHOUT_plot,[SUBJ{s} 'specs']);
 
     display(['Done with ' SUBJ{s}])
 
 
 end
+
+save([PATHOUT_prep 'all_trials'],'all_trials')
 
 tab = table([all_trials.ID]',[all_trials.TrialNumber]',[all_trials.ForceCondition]',[all_trials.Scaling]',...
     [all_trials.FeedbackCondition]',[all_trials.ActivePassive]',[all_trials.AuditiveCondition]',...

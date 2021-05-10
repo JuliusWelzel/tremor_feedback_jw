@@ -21,17 +21,17 @@ function waterfALL(all_trials,s)
     idx_ao = strcmp(all_trials(s).FeedbackCondition,'ao');
 
     
-%% boxplot overview
+    %% boxplot overview
    subplot(2,3,[1:3])
    singleBoxplot({all_trials(s).fs_pow_4_12(idx_vo),all_trials(s).fs_pow_4_12(idx_av),all_trials(s).fs_pow_4_12(idx_ao)})
    tune_BP([color.c_ao;color.c_av;color.c_vo])
    ylabel (['\SigmaBandpower [a.u.]'])
    xticklabels({'VO','AV','AO'})
 
-%% FORCE SENSOR DATA
-foi_fs = all_trials(s).fs_freqs(1,:)>=4 & all_trials(s).fs_freqs(1,:)<= 12;
+    %% FORCE SENSOR DATA
+    foi_fs = all_trials(s).fs_freqs(1,:)>=4 & all_trials(s).fs_freqs(1,:)<= 12;
 
-% vo waterfall
+    % vo waterfall
     subplot(2,3,4)
     wvo = waterfall(all_trials(s).fs_freqs(1,:),1:sum(idx_vo),all_trials(s).fs_spec(idx_vo,:))
     wvo.FaceColor = 'flat';
@@ -46,7 +46,7 @@ foi_fs = all_trials(s).fs_freqs(1,:)>=4 & all_trials(s).fs_freqs(1,:)<= 12;
     ylabel 'Trial [N]'
     zlabel (['PSD [a.u./Hz]'])
 
-% av waterfall
+    % av waterfall
     subplot(2,3,5)
     wav = waterfall(all_trials(s).fs_freqs(1,:),1:sum(idx_av),all_trials(s).fs_spec(idx_av,:))
     wav.FaceColor = 'flat';
@@ -61,7 +61,7 @@ foi_fs = all_trials(s).fs_freqs(1,:)>=4 & all_trials(s).fs_freqs(1,:)<= 12;
     ylabel 'Trial [N]'
     zlabel (['PSD [a.u./Hz]'])
 
-% ao waterfall
+    % ao waterfall
     subplot(2,3,6)
     wao = waterfall(all_trials(s).fs_freqs(1,:),1:sum(idx_ao),all_trials(s).fs_spec(idx_ao,:))
     wao.FaceColor = 'flat';
