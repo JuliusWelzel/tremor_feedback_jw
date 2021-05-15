@@ -22,9 +22,9 @@ function waterfALL(all_trials,s)
 
     
     %% boxplot overview
-   subplot(2,3,[1:3])
+   subplot(2,2,4)
    singleBoxplot({all_trials(s).fs_pow_4_12(idx_vo),all_trials(s).fs_pow_4_12(idx_av),all_trials(s).fs_pow_4_12(idx_ao)})
-   tune_BP([color.c_ao;color.c_av;color.c_vo])
+   tune_BP([color.cmap_ao(1,:);color.cmap_av(1,:);color.cmap_vo(1,:)])
    ylabel (['\SigmaBandpower [a.u.]'])
    xticklabels({'VO','AV','AO'})
 
@@ -32,11 +32,11 @@ function waterfALL(all_trials,s)
     foi_fs = all_trials(s).fs_freqs(1,:)>=4 & all_trials(s).fs_freqs(1,:)<= 12;
 
     % vo waterfall
-    subplot(2,3,4)
+    subplot(2,2,1)
     wvo = waterfall(all_trials(s).fs_freqs(1,:),1:sum(idx_vo),all_trials(s).fs_spec(idx_vo,:))
     wvo.FaceColor = 'flat';
     wvo.EdgeColor = 'w';
-    wvo.FaceVertexCData =  repmat(color.c_vo,sum(idx_vo),1);
+    wvo.FaceVertexCData =  winter(sum(idx_vo));
     axis tight
    
     xlim([4 12])
@@ -44,14 +44,14 @@ function waterfALL(all_trials,s)
     
     xlabel 'Frequency [Hz]'
     ylabel 'Trial [N]'
-    zlabel (['PSD [a.u./Hz]'])
+    zlabel (['Power [a.u./Hz]'])
 
     % av waterfall
-    subplot(2,3,5)
+    subplot(2,2,2)
     wav = waterfall(all_trials(s).fs_freqs(1,:),1:sum(idx_av),all_trials(s).fs_spec(idx_av,:))
     wav.FaceColor = 'flat';
     wav.EdgeColor = 'w';
-    wav.FaceVertexCData =  repmat(color.c_av,sum(idx_av),1);
+    wav.FaceVertexCData =  summer(sum(idx_av));
     axis tight
     
     xlim([4 12])
@@ -59,14 +59,14 @@ function waterfALL(all_trials,s)
     
     xlabel 'Frequency [Hz]'
     ylabel 'Trial [N]'
-    zlabel (['PSD [a.u./Hz]'])
+    zlabel (['Power [a.u./Hz]'])
 
     % ao waterfall
-    subplot(2,3,6)
+    subplot(2,2,3)
     wao = waterfall(all_trials(s).fs_freqs(1,:),1:sum(idx_ao),all_trials(s).fs_spec(idx_ao,:))
     wao.FaceColor = 'flat';
     wao.EdgeColor = 'w';
-    wao.FaceVertexCData =  repmat(color.c_ao,sum(idx_ao),1);
+    wao.FaceVertexCData =  cool(sum(idx_ao));
     axis tight
     
     xlim([4 12])
@@ -74,7 +74,7 @@ function waterfALL(all_trials,s)
     
     xlabel 'Frequency [Hz]'
     ylabel 'Trial [N]'
-    zlabel (['PSD [a.u./Hz]'])
+    zlabel (['Power [a.u./Hz]'])
    
 end
 

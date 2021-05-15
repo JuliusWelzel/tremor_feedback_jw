@@ -174,26 +174,29 @@ for s = 1:numel(SUBJ)
     
     %% plot all trials per participant
 
-   
+    color.cmap_vo = winter(numel(eps));
+    color.cmap_av = summer(numel(eps));
+	color.cmap_ao = cool(numel(eps));
+        
     figure
     for p = 1:numel(eps)
         hold on
         switch eps(p).fdbck_con
             case "vo"
-                tmp_cc = color.c_vo;
+                tmp_cc = color.cmap_vo(p,:);
                 subplot(1,3,1)
                 ylabel 'Normalised targetforce [a.u.]'
                 title 'Visual'
 
             case "va"
-                tmp_cc = color.c_av;
+                tmp_cc = color.cmap_av(p,:);
                 subplot(1,3,2)
                 xlabel 'Time [s]'
                 title 'Audio-visual'
 
                 
             case "ao"
-                tmp_cc = color.c_ao;
+                tmp_cc = color.cmap_ao(p,:);
                 subplot(1,3,3)
                 xlabel 'Time [s]'
                 title 'Audio'
@@ -201,11 +204,15 @@ for s = 1:numel(SUBJ)
         
         
         plot(eps(p).fs_ts - eps(p).fs_ts(1), eps(p).fs_trial/(eps(p).frc_con * eps(1).max_force),'Color',tmp_cc)
+        hold on
         hline(1,'--k')
+        xlim([0 inf])
+        ylim([0 inf])
     end
     save_fig(gcf,PATHOUT_plot,[SUBJ{s} 'all_trials_raw']);
 
     % plot extra stuff and save
+    close all
     eps = singleTrialPupil(eps);
     save_fig(gcf,PATHOUT_plot,[SUBJ{s} 'pupil_data']);
  
@@ -213,6 +220,7 @@ for s = 1:numel(SUBJ)
     
     %% transfer 
     all_trials(s).ID                = repmat(string(SUBJ{s}),numel(eps),1)';
+    all_trials(s).group             = repmat(string(prob_info.Gruppe{s}),numel(eps),1)';
     all_trials(s).TrialNumber       = [eps.num];
     all_trials(s).ForceCondition    = [eps.frc_con];
     all_trials(s).Scaling           = [eps.scl];
@@ -221,11 +229,18 @@ for s = 1:numel(SUBJ)
     all_trials(s).AuditiveCondition = [eps.AudioCondition];
     
     % sensor data
-    all_trials(s).RMSE              = [eps.rmse_raw];
     all_trials(s).out_rmse          = isoutlier([eps.rmse_raw]);
-    all_trials(s).pow03             = zscore([eps.pow03]);
-    all_trials(s).pow412            = zscore([eps.pow412]);
+    all_trials(s).RMSE              = [eps.rmse_raw];
     all_trials(s).out_pow           = isoutlier([eps.pow412]);
+    
+    pow03                           = [eps.pow03];
+    pow03(isoutlier(pow03))         = NaN;
+    all_trials(s).pow03             = nanzscore([pow03]);
+    
+    pow412                          = [eps.pow412];
+    pow412(isoutlier(pow412))       = NaN;
+    all_trials(s).pow412            = nanzscore([pow412]);
+
     
     % pupil data
     all_trials(s).ppl_sz_l          = [eps.ppl_sz_trl_l];
@@ -236,6 +251,7 @@ for s = 1:numel(SUBJ)
     [all_trials(s).fs_pow_4_12,all_trials(s).fs_spec,all_trials(s).fs_freqs,] = interpSingleTrialData(eps);    
      
     waterfALL(all_trials,s);
+
     save_fig(gcf,PATHOUT_plot,[SUBJ{s} 'specs']);
 
     display(['Done with ' SUBJ{s}])
@@ -245,17 +261,17 @@ end
 
 save([PATHOUT_prep 'all_trials'],'all_trials')
 
-tab = table([all_trials.ID]',[all_trials.TrialNumber]',[all_trials.ForceCondition]',[all_trials.Scaling]',...
+
+tab = table([all_trials.ID]',[all_trials.group]',[all_trials.TrialNumber]',[all_trials.ForceCondition]',[all_trials.Scaling]',...
     [all_trials.FeedbackCondition]',[all_trials.ActivePassive]',[all_trials.AuditiveCondition]',...
     [all_trials.RMSE]',[all_trials.out_rmse]',[all_trials.pow03]',[all_trials.pow412]',[all_trials.out_pow]',...
     [all_trials.ppl_sz_l]',[all_trials.out_ppl_sz_l]',[all_trials.ppl_sz_r]',[all_trials.out_ppl_sz_r]');
 
-tab.Properties.VariableNames = {'ID','n','ForceCondition','Scaling','FeedbackCondition','ActivePassive','AuditiveCondition',...
+tab.Properties.VariableNames = {'ID','Group','n','ForceCondition','Scaling','FeedbackCondition','ActivePassive','AuditiveCondition',...
     'RMSE','Outlier RMSE','Power [0-3 Hz]','Power [4-12 Hz]','Outlier Power',...
     'Pupilsize left','Outlier Ppl l','Pupilsize right','Outlier Ppl r'};
 
 writetable(tab,[PATHOUT_prep 'overview_all_trials.csv'])
-
 
 
 

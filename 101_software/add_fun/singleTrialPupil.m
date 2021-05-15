@@ -17,6 +17,8 @@ function eps = singleTrialPupil(eps)
 % Author: (Julius Welzel, University of Kiel, 2021)
 
 %% Loop over every epoch and correct blinks
+cmap_blink = parula(numel(eps));
+
 figure
 
 for e = 1:numel(eps)
@@ -56,30 +58,49 @@ for e = 1:numel(eps)
     eps(e).ppl_sz_bl_r        = sz_bls(e,2);
     eps(e).ppl_sz_trl_r       = sz_trl(e,2);
 
-    subplot(2,2,1)
-    plot(eps(e).ppl_ts - eps(e).ppl_ts(1),eps(e).ppl_trial(21,:),'Color',[.8 .8 .8])
+    subplot(3,2,1)
+    plot(eps(e).ppl_ts - eps(e).ppl_ts(1),eps(e).ppl_trial(21,:),'Color',cmap_blink(e,:))
     title 'Left Eye Raw'
     hold on
     ylabel 'Pupil Size[mm³]'
+    axis tight
 
-    subplot(2,2,2)
-    plot(eps(e).ppl_ts - eps(e).ppl_ts(1),eps(e).ppl_sz_left,'Color',[.8 .8 .8])
-    title 'Left Eye Filt'
+    subplot(3,2,2)
+    plot(eps(e).ppl_ts - eps(e).ppl_ts(1),eps(e).ppl_sz_left - eps(e).ppl_sz_bl_l,'Color',cmap_blink(e,:))
+    title 'Left Eye BL-cor'
     hold on
+    axis tight
     
-    subplot(2,2,3)
-    plot(eps(e).ppl_ts - eps(e).ppl_ts(1),eps(e).ppl_trial(21,:),'Color',[.8 .8 .8])
+    subplot(3,2,3)
+    plot(eps(e).ppl_ts - eps(e).ppl_ts(1),eps(e).ppl_trial(22,:),'Color',cmap_blink(e,:))
     title 'Right Eye Raw'
     hold on
     ylabel 'Pupil Size[mm³]'
+    axis tight
     
-    subplot(2,2,4)
-    plot(eps(e).ppl_ts - eps(e).ppl_ts(1),eps(e).ppl_sz_right,'Color',[.8 .8 .8])
-    title 'Right Eye Filt'
+    subplot(3,2,4)
+    plot(eps(e).ppl_ts - eps(e).ppl_ts(1),eps(e).ppl_sz_right - eps(e).ppl_sz_bl_r,'Color',cmap_blink(e,:))
+    title 'Right Eye BL-cor'
     hold on
     xlabel 'Time [s]'
-
+    axis tight
+        
+    ppl_mean_l(e,:) = imresize(eps(e).ppl_sz_left - eps(e).ppl_sz_bl_l,[1 2000]);
+    ppl_mean_r(e,:) = imresize(eps(e).ppl_sz_right - eps(e).ppl_sz_bl_r,[1 2000]);
 end
+
+subplot(3,2,[5,6])
+plot(nanmean(ppl_mean_l,1),'Color',cmap_blink(1,:),'LineWidth',1)
+hold on
+plot(nanmean(ppl_mean_r,1),'Color',cmap_blink(end - 20,:),'LineWidth',1)
+legend({'Left Eye','Right Eye'})
+title 'Mean Pupil Size_{BL corrected}'
+xlabel 'Time [s]'
+xticks([0 2000])
+xticklabels({'0','end'})
+vline([700 800],'-k')
+
+
 
 %% 
 %{
