@@ -28,60 +28,16 @@ for i = 1:numel(all_trials)
    end
 end
 
-idx_empty = isempty({all_trials.ID})
-%% Loop over subs
+idx_empty = ismissing(nms_sub);
 
-for s = 1:numel(SUBJ)
-    
-    display(['Working in SUBJ ' SUBJ{s}])
+tab = table([all_trials.ID]',[all_trials.group]',[all_trials.TrialNumber]',[all_trials.ForceCondition]',[all_trials.Scaling]',...
+    [all_trials.FeedbackCondition]',[all_trials.ActivePassive]',[all_trials.AuditiveCondition]',...
+    [all_trials.RMSE]',[all_trials.out_rmse]',[all_trials.pow03]',[all_trials.pow412]',[all_trials.out_pow]',...
+    [all_trials.ppl_sz_l]',[all_trials.out_ppl_sz_l]',[all_trials.ppl_sz_r]',[all_trials.out_ppl_sz_r]');
 
-    clear eps
-    load([PATHIN SUBJ{s} '_epData.mat']);
-    
-    eps = singleTrialPupil(s,eps);
-%     get appropriate epochs here 
-    
-    figure
-    for p = 1:numel(eps)
-        
-        hold on
-        % pupil data
-        ylabel 'BL_corrected pupil size [mm³]'
-        
-        %%
-        close all
-        plot(eps(p).ppl_trial(21,:))
-        hold on 
-        
-        windowSize = 20; 
-        b = (1/windowSize)*ones(1,windowSize);
-        a = 1;
-        y = filter(b,a,eps(p).ppl_trial(21,:));
-        y(eps(e).ppl_trial(1,:) < 0.8) = NaN;
-        plot(y)
-        hold on 
-        y_ = hampel(y,48,1);
-        plot(y_)
-        hold on
-        plot(eps(p).ppl_trial(1,:))
+tab.Properties.VariableNames = {'ID','Group','n','ForceCondition','Scaling','FeedbackCondition','ActivePassive','AuditiveCondition',...
+    'RMSE','Outlier RMSE','Power [0-3 Hz]','Power [4-12 Hz]','Outlier Power',...
+    'Pupilsize left','Outlier Ppl l','Pupilsize right','Outlier Ppl r'};
 
-%%
-
-    end
-        
-        
-    end
-    
-    % force sensor
-    subplot(3,3,7)
-    ylabel 'Scale [a.u.]'
-    title 'Visual'
-    save_fig(gcf,PATHOUT_plots,[SUBJ{s} '_pupil_data'],'fontsize',12,'figsize',[0 0 50 30]);
-
-
-    waterfALL(all_trials,s);
-    save_fig(gcf,PATHOUT_plots,[SUBJ{s} '_ss_fft'],'fontsize',12,'figsize',[0 0 50 30]);
-end
-
-
-save([PATHOUT 'all_part_all_trials.mat'],'all_trials')
+tab.ViewingAngle = atand((tab.Scaling * .24) / .95);
+writetable(tab,[PATHOUT 'overview_all_trials.csv'])
