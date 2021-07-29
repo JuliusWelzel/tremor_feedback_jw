@@ -16,22 +16,24 @@ PATHOUT_plot = [MAIN '06_plots' filesep '01_single_trial' filesep];
 if ~exist(PATHOUT_prep);mkdir(PATHOUT_prep);end
 if ~exist(PATHOUT_plot);mkdir(PATHOUT_plot);end
 
+global SUBJ s prob_info % set global for transfer in function
+
 list = dir(fullfile([PATHIN_raw]));
 list_s = list(contains({list.name},'_isometric_tremor_loud'));
 SUBJ = extractBefore({list_s.name},'_isometric_tremor_loud');
 
 prob_info = readtable([PATHIN_raw list(contains({list.name},'rekrutierung')).name]);
 
-%% Loop over subs
+load([PATHOUT_prep 'all_trials.mat'])
 
+%% Loop over subs
+ 
 for s = 1:numel(SUBJ)
     
     clear eps
-    display(['Working in SUBJ ' SUBJ{s}])
+    display(['Working on SUBJ ' SUBJ{s}])
     
-    if contains(SUBJ{s},{'p114','p115'});continue;end
-    
-    try isempty(all_trials(s).ID);continue;end
+    if contains(SUBJ{s},{'p110','p111','p115','p117'});continue;end  
     
     % load data from first paradigm
     tmp_loud     = load_xdf([PATHIN_raw SUBJ{s} '_isometric_tremor_loud.xdf']); %full xdf file
@@ -107,8 +109,6 @@ for s = 1:numel(SUBJ)
        
     %% load data from second paradigm
     
-    if contains(SUBJ{s},{'p110','p111','p117'});continue;end
-
     tmp_fly     = load_xdf([PATHIN_raw SUBJ{s} '_isometric_tremor_fly.xdf']); %full xdf file
 
     ppl_fly = findLslStream(tmp_fly,'pupil_capture');
@@ -218,44 +218,15 @@ for s = 1:numel(SUBJ)
  
     save([PATHOUT_prep SUBJ{s} '_epData.mat'],'eps');
     
+    
     %% transfer 
-    all_trials(s).ID                = repmat(string(SUBJ{s}),numel(eps),1)';
-    all_trials(s).group             = repmat(string(prob_info.Gruppe{s}),numel(eps),1)';
-    all_trials(s).TrialNumber       = [eps.num];
-    all_trials(s).ForceCondition    = [eps.frc_con];
-    all_trials(s).Scaling           = [eps.scl];
-    all_trials(s).FeedbackCondition = [eps.fdbck_con];
-    all_trials(s).ActivePassive     = [eps.block];
-    all_trials(s).AuditiveCondition = [eps.AudioCondition];
+    [all_trials] = transfer2all(eps);
     
-    % sensor data
-    all_trials(s).out_rmse          = isoutlier([eps.rmse_raw]);
-    all_trials(s).RMSE              = [eps.rmse_raw];
-    all_trials(s).out_pow           = isoutlier([eps.pow412]);
-    
-    pow03                           = [eps.pow03];
-    pow03(isoutlier(pow03))         = NaN;
-    all_trials(s).pow03             = nanzscore([pow03]);
-    
-    pow412                          = [eps.pow412];
-    pow412(isoutlier(pow412))       = NaN;
-    all_trials(s).pow412            = nanzscore([pow412]);
-
-    
-    % pupil data
-    all_trials(s).ppl_sz_l          = [eps.ppl_sz_trl_l];
-    all_trials(s).out_ppl_sz_l      = isoutlier([eps.ppl_sz_trl_l]);
-    all_trials(s).ppl_sz_r          = [eps.ppl_sz_trl_r];
-    all_trials(s).out_ppl_sz_r      = isoutlier([eps.ppl_sz_trl_r]);
-   
-    [all_trials(s).fs_pow_4_12,all_trials(s).fs_spec,all_trials(s).fs_freqs,] = interpSingleTrialData(eps);    
-     
-    waterfALL(all_trials,s);
+    waterfalloverview(all_trials,s);
 
     save_fig(gcf,PATHOUT_plot,[SUBJ{s} 'specs']);
 
     display(['Done with ' SUBJ{s}])
-
 
 end
 

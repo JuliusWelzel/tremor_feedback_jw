@@ -40,4 +40,6 @@ tab.Properties.VariableNames = {'ID','Group','n','ForceCondition','Scaling','Fee
     'Pupilsize left','Outlier Ppl l','Pupilsize right','Outlier Ppl r'};
 
 tab.ViewingAngle = atand((tab.Scaling * .24) / .95);
-writetable(tab,[PATHOUT 'overview_all_trials.csv'])
+% writetable(tab,[PATHOUT 'overview_all_trials.csv'])
+
+%% plot scale distribution
