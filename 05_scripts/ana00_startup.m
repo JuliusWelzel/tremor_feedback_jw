@@ -9,6 +9,8 @@
 % Author: Julius Welzel (j.welzel@neurologie.uni-kiel.de)
 
 clc; clear all; close all;
+filepath = fileparts(mfilename('fullpath'))
+cd (filepath)
 
 MAIN = [fileparts(pwd) '\'];
 addpath(genpath(MAIN));
