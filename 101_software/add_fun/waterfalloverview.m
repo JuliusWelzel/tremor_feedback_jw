@@ -1,4 +1,4 @@
-function waterfalloverview(all_trials,s)
+function waterfalloverview(eps)
 %waterfALL: Plot EMG emg_spectrum of all trials 
 %
 %Input:
@@ -11,21 +11,24 @@ function waterfalloverview(all_trials,s)
 % Contact: j.welzel@nurologie.uni-kiel.de //
 % https://github.com/JuliusWelzel/int_trmr_eeg
 
-%% get info per trial
+    %% get info per trial
 
     global color
     
-    n_trials = numel(all_trials(s).ID);
-    idx_vo = strcmp(all_trials(s).FeedbackCondition,'vo');
-    idx_av = strcmp(all_trials(s).FeedbackCondition,'va');
-    idx_ao = strcmp(all_trials(s).FeedbackCondition,'ao');
+    % delete training trials
+    eps.fs(1:2) = [];
+    n_trials = numel(eps.fs);
+    idx_vo = strcmp(eps.con_fdbck(3:end),'vo') ;
+    idx_av = strcmp(eps.con_fdbck(3:end),'va');
+    idx_ao = strcmp(eps.con_fdbck(3:end),'ao');
 
     
     %% spectra average
-    freqsAll    = all_trials(s).fs_freqs(1,:);
-    specAvgVo   = mean(all_trials(s).fs_spec(idx_vo,:));
-    specAvgAo   = mean(all_trials(s).fs_spec(idx_ao,:));
-    specAvgAv   = mean(all_trials(s).fs_spec(idx_av,:));
+    freqsAll    = eps.fs(1).freq_vec;
+    specsAll    = vertcat(eps.fs.spec_vec);
+    specAvgVo   = mean(specsAll(idx_vo,:));
+    specAvgAo   = mean(specsAll(idx_ao,:));
+    specAvgAv   = mean(specsAll(idx_av,:));
     
     subplot(2,2,4)
     pVo = plot(freqsAll,specAvgVo)
@@ -54,18 +57,18 @@ function waterfalloverview(all_trials,s)
 
  
     %% FORCE SENSOR DATA
-    foi_fs = all_trials(s).fs_freqs(1,:)>=4 & all_trials(s).fs_freqs(1,:)<= 12;
+    foi_fs = freqsAll >=4 & freqsAll <= 12;
 
     % vo waterfall
     subplot(2,2,1)
-    wvo = waterfall(all_trials(s).fs_freqs(1,:),1:sum(idx_vo),all_trials(s).fs_spec(idx_vo,:))
+    wvo = waterfall(freqsAll,1:sum(idx_vo),specsAll(idx_vo,:))
     wvo.FaceColor = 'flat';
     wvo.EdgeColor = 'w';
     wvo.FaceVertexCData =  winter(sum(idx_vo));
     axis tight
    
     xlim([4 12])
-    zlim([0 max(all_trials(s).fs_spec(:,foi_fs),[],'all')])
+    zlim([0 max(specsAll(:,foi_fs),[],'all')])
     
     xlabel 'Frequency [Hz]'
     ylabel 'Trial [N]'
@@ -73,14 +76,14 @@ function waterfalloverview(all_trials,s)
 
     % av waterfall
     subplot(2,2,2)
-    wav = waterfall(all_trials(s).fs_freqs(1,:),1:sum(idx_av),all_trials(s).fs_spec(idx_av,:))
+    wav = waterfall(freqsAll,1:sum(idx_av),specsAll(idx_av,:))
     wav.FaceColor = 'flat';
     wav.EdgeColor = 'w';
     wav.FaceVertexCData =  summer(sum(idx_av));
     axis tight
     
     xlim([4 12])
-    zlim([0 max(all_trials(s).fs_spec(:,foi_fs),[],'all')])
+    zlim([0 max(specsAll(:,foi_fs),[],'all')])
     
     xlabel 'Frequency [Hz]'
     ylabel 'Trial [N]'
@@ -88,14 +91,14 @@ function waterfalloverview(all_trials,s)
 
     % ao waterfall
     subplot(2,2,3)
-    wao = waterfall(all_trials(s).fs_freqs(1,:),1:sum(idx_ao),all_trials(s).fs_spec(idx_ao,:))
+    wao = waterfall(freqsAll,1:sum(idx_ao),specsAll(idx_ao,:))
     wao.FaceColor = 'flat';
     wao.EdgeColor = 'w';
     wao.FaceVertexCData =  cool(sum(idx_ao));
     axis tight
     
     xlim([4 12])
-    zlim([0 max(all_trials(s).fs_spec(:,foi_fs),[],'all')])
+    zlim([0 max(specsAll(:,foi_fs),[],'all')])
     
     xlabel 'Frequency [Hz]'
     ylabel 'Trial [N]'

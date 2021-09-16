@@ -3,7 +3,7 @@ function [fs_pow_4_12,fs_spec,fs_freqs] = interpSingleTrialData(eps)
 %single trial info
     
     % filter configs
-    fs_srate = 60; % wanted srate force sensor
+    fs_srate = 80; % wanted srate force sensor
                 
     filt_fs_412 = designfilt('bandpassfir','FilterOrder',20,...
     'CutoffFrequency1',4,'CutoffFrequency2',12,...
@@ -13,7 +13,7 @@ function [fs_pow_4_12,fs_spec,fs_freqs] = interpSingleTrialData(eps)
 
   
     % vars for loop
-    for e = 1:numel(eps) % only extract data after training trials
+    for e = 3:numel(eps) % only extract data after training trials
        
         % interpolate force sensor
         tmp_dur                 = round(eps(e).mrk_ts(end)-eps(e).mrk_ts(end-1),0);

@@ -1,13 +1,12 @@
 function eps = singleTrialPupil(eps)
-% singleTrialPupil: Function to  extract pupil diameter from preprocessed pupilabs data
+% singleTrialPupil: Function to extract pupil diameter from preprocessed pupilabs data
 % and detect blink onsets
 %     
 % INPUT: 
 %     eps: single epochs from int_trmr_eeg
 %     (https://github.com/JuliusWelzel/int_trmr_eeg) containing data for
 %     from force sensor, emg, and pupil labs including markers per epoch
-
-
+%
 % OUTPUT:
 %    bls: vector containing single baseline averages puil size,
 %       corrected
