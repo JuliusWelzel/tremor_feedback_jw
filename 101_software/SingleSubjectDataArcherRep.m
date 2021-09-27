@@ -6,7 +6,8 @@ classdef SingleSubjectDataArcherRep
         % Subject specific
         id          = "";
         frc_max     = []; % max force from 3 trials of 1 s
-        frc_srate    = 80;
+        frc_srate   = 80;
+        ppl_srate    
         
         % Epoch specific
         n_epoch     = []; % running epoch number

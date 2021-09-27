@@ -40,6 +40,9 @@ for s = 1:numel(subj) % all
     % initalize epoch class 
     eps = SingleSubjectDataArcherRep;
     eps.id = subj{s};
+    
+    % get ppl sampling rate
+    eps.ppl_srate = round(str2num(ppl_arch.info.sample_count)/(ppl_arch.time_stamps(end)-ppl_arch.time_stamps(1)),0);
 
     %% Extract marker and max force
     idx_ep_all = find(contains(mrk_arch.time_series,'epoch'));
@@ -96,7 +99,7 @@ for s = 1:numel(subj) % all
         [eps.fs(e).frc eps.fs(e).ts]        = tsBetweenMrks(fsr_arch,idx_ep_all(e)+1,idx_ep_all(e)+2,mrk_arch);
         
         % extract per trial parts of pupil labs
-        [eps.ppl(e).trial eps.ppl(e).ts]    = tsBetweenMrks(ppl_arch,idx_ep_all(e),idx_ep_all(e)+2,mrk_arch);
+        [eps.ppl(e).trial eps.ppl(e).ts]    = tsBetweenMrks(ppl_arch,idx_ep_all(e)-1,idx_ep_all(e)+2,mrk_arch);
 
 
     end
@@ -146,9 +149,14 @@ for s = 1:numel(subj) % all
     save_fig(gcf,PATHOUT_plot,[subj{s} 'all_trials_raw']);
 
     % plot extra stuff and save
-%     close all
+    close all
 %     eps = singleTrialPupil(eps);
-%     save_fig(gcf,PATHOUT_plot,[subj{s} 'pupil_data']);
+
+[valOut,speedFiltData,devFiltData] ...
+    = rawDataFilter(t_ms,diaSamples,rawFiltSettings)
+tmp = genMeanDiaSamples(ts_l_dia,r_dia,l_valid,r_valid)
+
+    save_fig(gcf,PATHOUT_plot,[subj{s} 'pupil_data']);
  
     save([PATHOUT_prep subj{s} '_epData.mat'],'eps');
     
@@ -170,12 +178,12 @@ save([PATHOUT_prep 'all_trials'],'all_trials')
 
 tab = table([all_trials.ID]',[all_trials.TrialNumber]',[all_trials.ForceCondition]',[all_trials.Scaling]',...
     [all_trials.FeedbackCondition]',[all_trials.Block]',[all_trials.AuditiveCondition]',...
-    [all_trials.rmse]',[all_trials.out_rmse]',[all_trials.pow03]',[all_trials.pow412]',[all_trials.out_pow_412]');%,...
-%     [all_trials.ppl_sz_l]',[all_trials.out_ppl_sz_l]',[all_trials.ppl_sz_r]',[all_trials.out_ppl_sz_r]');
+    [all_trials.rmse]',[all_trials.out_rmse]',[all_trials.pow03]',[all_trials.pow412]',[all_trials.out_pow_412]',...
+    [all_trials.ppl_sz_l]',[all_trials.out_ppl_sz_l]',[all_trials.ppl_sz_r]',[all_trials.out_ppl_sz_r]');
 
 tab.Properties.VariableNames = {'ID','n','ForceCondition','Scaling','FeedbackCondition','Block','AuditiveCondition',...
-    'RMSE','Outlier RMSE','Power [0-3 Hz]','Power [4-12 Hz]','Outlier Power'};%,...
-%     'Pupilsize left','Outlier Ppl l','Pupilsize right','Outlier Ppl r'};
+    'RMSE','Outlier RMSE','Power [0-3 Hz]','Power [4-12 Hz]','Outlier Power',...
+    'Pupilsize left','Outlier Ppl l','Pupilsize right','Outlier Ppl r'};
 
 writetable(tab,[PATHOUT_prep 'overview_all_trials_archer_rep.csv'])
 

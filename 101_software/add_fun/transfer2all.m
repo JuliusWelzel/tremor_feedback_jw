@@ -28,19 +28,19 @@ global subj s all_trials
     all_trials(s).out_pow_412       = isoutlier([eps.frc_bp412]);
     
     pow03                           = [eps.frc_bp03];
-    pow03(isoutlier(pow03))         = NaN;
+%     pow03(isoutlier(pow03))         = NaN;
     all_trials(s).pow03             = nanzscore([pow03]);
     
     pow412                          = [eps.frc_bp412];
-    pow412(isoutlier(pow412))       = NaN;
+%     pow412(isoutlier(pow412))       = NaN;
     all_trials(s).pow412            = nanzscore([pow412]);
 
     try 
         % pupil data
-        all_trials(s).ppl_sz_l          = [eps.ppl_sz_trl_l];
-        all_trials(s).out_ppl_sz_l      = isoutlier([eps.ppl_sz_trl_l]);
-        all_trials(s).ppl_sz_r          = [eps.ppl_sz_trl_r];
-        all_trials(s).out_ppl_sz_r      = isoutlier([eps.ppl_sz_trl_r]);
+        all_trials(s).ppl_sz_l          = [eps.ppl.ppl_sz_trl_l];
+        all_trials(s).out_ppl_sz_l      = isoutlier([eps.ppl.ppl_sz_trl_l]);
+        all_trials(s).ppl_sz_r          = [eps.ppl.ppl_sz_trl_r];
+        all_trials(s).out_ppl_sz_r      = isoutlier([eps.ppl.ppl_sz_trl_r]);
     
     catch    
         % pupil data
