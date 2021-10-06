@@ -152,10 +152,6 @@ for s = 1:numel(subj) % all
     close all
 %     eps = singleTrialPupil(eps);
 
-[valOut,speedFiltData,devFiltData] ...
-    = rawDataFilter(t_ms,diaSamples,rawFiltSettings)
-tmp = genMeanDiaSamples(ts_l_dia,r_dia,l_valid,r_valid)
-
     save_fig(gcf,PATHOUT_plot,[subj{s} 'pupil_data']);
  
     save([PATHOUT_prep subj{s} '_epData.mat'],'eps');
