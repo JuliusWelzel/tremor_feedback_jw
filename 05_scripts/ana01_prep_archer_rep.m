@@ -150,7 +150,7 @@ for s = 1:numel(subj) % all
 
     % plot extra stuff and save
     close all
-%     eps = singleTrialPupil(eps);
+    eps = singleTrialPupil(eps);
 
     save_fig(gcf,PATHOUT_plot,[subj{s} 'pupil_data']);
  
