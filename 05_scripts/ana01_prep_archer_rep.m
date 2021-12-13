@@ -109,6 +109,20 @@ for s = 1:numel(subj) % all
     eps = eps.PrepForceSensor;
     eps = eps.TransferScl2deg; % change viewing angle to degree
     
+    %% restructure data for cross correltaion 
+    n_sec_pad   = 2;
+    dur_ep      = 30;
+
+    target_force = ones(1,length(eps.fs(idx_ep(1)).frc));
+    target_force   = zeroPadData(target_force,n_sec_pad * eps.frc_srate);
+    time_pad = linspace(-n_sec_pad,dur_ep + n_sec_pad,(dur_ep + (2*n_sec_pad)) *  eps.frc_srate);
+    
+    for ep = 1:numel(idx_ep_all)
+        rel_fs      = [];
+        rel_fs      = eps.fs(ep).frc/(eps.con_frc(ep) * eps.frc_max);
+        eps.fs(ep).pad_fs_dev    = zeroPadData(rel_fs,n_sec_pad * eps.frc_srate);
+    end
+    
     %% plot all trials per participant
 
     color.cmap_vo = winter(numel(eps.fs));
