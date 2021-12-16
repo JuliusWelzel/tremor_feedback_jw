@@ -42,6 +42,7 @@ for s = 1:numel(SUBJ)
         % participant specific
         info.id(ct) =  string(SUBJ{s});
         
+        
         % trial specific
         trials(ct,:) = eps.fs(e).pad_fs_dev;
         
@@ -56,13 +57,40 @@ for s = 1:numel(SUBJ)
 
 end
 
+n_sec_pad   = 2;
+dur_ep      = 30;
+target_force    = ones(1,length(eps.fs(3).frc));
+target_force    = zeroPadData(target_force,n_sec_pad * eps.frc_srate);
+time_pad        = linspace(-n_sec_pad,dur_ep + n_sec_pad,(dur_ep + (2*n_sec_pad)) *  eps.frc_srate);
+
 %% plot
 
 idx_low     = info.scl == min(info.scl);
 idx_high    = info.scl == max(info.scl);
 idx_vo      = strcmp(info.mod,"vo");
 
-plot(mean(trials(idx_low & idx_vo,:),1),'Color',color.c_vo)
+% single trials
+plot(time_pad,trials(idx_low & idx_vo,:) - target_force,'Color',shadeColor(color.c_vo),'LineWidth',0.001,'LineStyle',':')
 hold on
-plot(mean(trials(idx_high & idx_vo,:),1),'Color',color.c_ao)
-legend('low','high')
+plot(time_pad,trials(idx_high & idx_vo,:) - target_force,'Color',shadeColor(color.c_ao),'LineWidth',0.001,'LineStyle',':')
+hold on
+
+% means
+m(1) = plot(time_pad,mean(trials(idx_low & idx_vo,:),1) - target_force,'Color',color.c_vo,'LineWidth',2)
+hold on
+m(2) = plot(time_pad,mean(trials(idx_high & idx_vo,:),1) - target_force,'Color',color.c_ao,'LineWidth',2)
+hold on
+
+
+
+legend(m(1:2),'low','high')
+xlim([-1 5])
+ylim([-1.1 .2])
+box off
+ylabel 'Deviation from target force [a.u.]'
+xlabel 'Time [s]'
+
+%%
+stdshade(trials(idx_high & idx_vo,:) - target_force,0.3,color.c_vo,time_pad)
+hold on
+stdshade(trials(idx_low & idx_vo,:) - target_force,0.3,color.c_ao,time_pad)

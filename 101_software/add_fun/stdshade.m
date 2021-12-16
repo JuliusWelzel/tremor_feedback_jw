@@ -41,7 +41,7 @@ if ishold==0
     check=true; else check=false;
 end
 
-hold on;plot(F,amean,acolor,'linewidth',1.5); %% change color or linewidth to adjust mean line
+hold on;plot(F,amean,'Color',acolor,'linewidth',1.5); %% change color or linewidth to adjust mean line
 
 if check
     hold off;
