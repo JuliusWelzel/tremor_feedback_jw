@@ -113,7 +113,7 @@ for s = 1:numel(subj) % all
     n_sec_pad   = 2;
     dur_ep      = 30;
 
-    target_force = ones(1,length(eps.fs(idx_ep(1)).frc));
+    target_force = ones(1,length(eps.fs(idx_ep_all(1)).frc));
     target_force   = zeroPadData(target_force,n_sec_pad * eps.frc_srate);
     time_pad = linspace(-n_sec_pad,dur_ep + n_sec_pad,(dur_ep + (2*n_sec_pad)) *  eps.frc_srate);
     
@@ -130,7 +130,8 @@ for s = 1:numel(subj) % all
 	color.cmap_ao = cool(numel(eps.fs));
         
     figure
-    for p = 1:numel(eps.fs)
+    idx_train_end = find(~strcmp(eps.blk,'training'),1);
+    for p = idx_train_end:numel(eps.fs)
         hold on
         switch eps.con_fdbck(p)
             case "vo"
