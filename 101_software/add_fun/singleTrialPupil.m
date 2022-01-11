@@ -23,7 +23,7 @@ figure
 for e = 1:numel(eps.ppl)
     
     
-    % skip training trials
+    % adjust timing for training trials
     if e == 1 | 2
         win_start   = 1;
         win_end     = 2;
@@ -32,18 +32,23 @@ for e = 1:numel(eps.ppl)
         win_end     = 27;
     end
     
+    % cfg for pupil size processing
+    % filter coefs
     windowSize = 20; 
     b = (1/windowSize)*ones(1,windowSize);
     a = 1;
     
+    % threshold CI
+    std_ci = mean(eps.ppl(e).trial(1,:)) - std(eps.ppl(e).trial(1,:));
+    
     % right eye
+    re(eps.ppl(e).trial(1,:) < std_ci) = NaN;
     re = filter(b,a,eps.ppl(e).trial(21,:));
-    re(eps.ppl(e).trial(1,:) < 0.6) = NaN;
     eps.ppl(e).ppl_sz_right = hampel(re,48,1);
 
     % left eye
     le = filter(b,a,eps.ppl(e).trial(22,:));
-    le(eps.ppl(e).trial(1,:) < 0.6) = NaN;
+    le(eps.ppl(e).trial(1,:) < std_ci) = NaN;
     eps.ppl(e).ppl_sz_left = hampel(le,48,1);
    
     %% find baseline start 
