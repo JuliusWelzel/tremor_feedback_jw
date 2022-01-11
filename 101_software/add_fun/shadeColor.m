@@ -9,7 +9,7 @@ function s_color = shadeColor(color,varargin)
 % check for name value pairs
 % Parse inputs: 
 p = inputParser;
-defaultAlpha = 1.4; 
+defaultAlpha = 1.2; 
 addParameter(p,'alpha',defaultAlpha,@isnumeric);
 parse(p,varargin{:});
 alpha = p.Results.alpha;

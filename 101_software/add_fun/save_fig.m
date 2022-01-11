@@ -6,7 +6,7 @@ function save_fig(F,PATHOUT, NAME,varargin)
 %     F: any figure handle e.g.: gcf)
 %     PATHOUT: string to where figure should be saved
 %     NAME: Name as string under which figure should be saved
-
+%
 % OUTPUT:
 %     No output, as figure is saved in specified location
 % 
