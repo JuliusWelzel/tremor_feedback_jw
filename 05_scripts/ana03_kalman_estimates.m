@@ -71,6 +71,8 @@ target_force    = ones(1,length(eps.fs(3).frc));
 target_force    = zeroPadData(target_force,n_sec_pad * eps.frc_srate);
 time_pad        = linspace(-n_sec_pad,dur_ep + n_sec_pad,(dur_ep + (2*n_sec_pad)) *  eps.frc_srate);
 
+trials(trials < 0 ) = 0;
+
 %% plot
 
 idx_low     = info.scl == min(info.scl);
@@ -101,9 +103,9 @@ xlabel 'Time [s]'
 
 %%
 figure
-stdshade(trials(idx_high & idx_vo,:) - target_force,0.3,color.c_vo,time_pad)
+stdshade(trials(idx_high & idx_vo,:) - target_force,0.3,color.c_vo * 1.7,time_pad)
 hold on
-stdshade(trials(idx_low & idx_vo,:) - target_force,0.3,color.c_ao,time_pad)
+stdshade(trials(idx_low & idx_vo,:) - target_force,0.3,color.c_vo,time_pad)
 hline(0,':k')
 hline(-1,':k')
 
@@ -111,7 +113,7 @@ xlabel 'Time [s]'
 ylabel 'Deviation from target force [a.u.]'
 xlim ([-2 15])
 
-legend('','high','','low')
+legend('','low','','high')
 
 
 %% estimate when hitting the target point
@@ -130,15 +132,15 @@ idx_high    = info.scl == max(info.scl);
 idx_vo      = strcmp(info.mod,"vo");
 
 % single trials
-plot(time_pad,trials_clean(idx_low & idx_vo,:) - target_force,'Color',shadeColor(color.c_vo),'LineWidth',0.001,'LineStyle',':')
+plot(time_pad,trials_clean(idx_low & idx_vo,:) - target_force,'Color',shadeColor(color.c_vo * 1.7),'LineWidth',0.001,'LineStyle',':')
 hold on
-plot(time_pad,trials_clean(idx_high & idx_vo,:) - target_force,'Color',shadeColor(color.c_ao),'LineWidth',0.001,'LineStyle',':')
+plot(time_pad,trials_clean(idx_high & idx_vo,:) - target_force,'Color',shadeColor(color.c_vo),'LineWidth',0.001,'LineStyle',':')
 hold on
 
 % means
-m(1) = plot(time_pad,mean(trials_clean(idx_low & idx_vo,:),1) - target_force,'Color',color.c_vo,'LineWidth',2)
+m(1) = plot(time_pad,mean(trials_clean(idx_low & idx_vo,:),1) - target_force,'Color',color.c_vo * 1.7,'LineWidth',2)
 hold on
-m(2) = plot(time_pad,mean(trials_clean(idx_high & idx_vo,:),1) - target_force,'Color',color.c_ao,'LineWidth',2)
+m(2) = plot(time_pad,mean(trials_clean(idx_high & idx_vo,:),1) - target_force,'Color',color.c_vo,'LineWidth',2)
 hold on
 
 hline(0,':k')
@@ -158,7 +160,7 @@ low_hit     = info.idx_hit(idx_low & info.idx_hit > 10) * ms_sam;
 high_hit    = info.idx_hit(idx_high & info.idx_hit > 10) * ms_sam;
 
 figure
-plot_psd(low_hit,'Color',color.c_ao,'Kernelwidth',200)
+plot_psd(low_hit,'Color',color.c_vo * 1.7,'Kernelwidth',200)
 hold on
 plot_psd(high_hit,'Color',color.c_vo,'Kernelwidth',200)
 

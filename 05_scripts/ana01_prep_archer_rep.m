@@ -9,9 +9,9 @@
 % Author: Julius Welzel (j.welzel@neurologie.uni-kiel.de)
 
 % define paths
-PATHIN_raw = [MAIN '04_Data' filesep '00_raw' filesep];
-PATHOUT_prep = [MAIN '04_Data' filesep '01_prep' filesep];
-PATHOUT_plot = [MAIN '06_plots' filesep '01_single_trial' filesep];
+PATHIN_raw      = fullfile(MAIN,'04_Data','00_raw');
+PATHOUT_prep    = fullfile(MAIN,'04_Data','01_prep');
+PATHOUT_plot    = fullfile(MAIN,'06_plots','01_single_trial');
 
 if ~exist(PATHOUT_prep);mkdir(PATHOUT_prep);end
 if ~exist(PATHOUT_plot);mkdir(PATHOUT_plot);end
@@ -19,7 +19,7 @@ if ~exist(PATHOUT_plot);mkdir(PATHOUT_plot);end
 global subj s all_trials % set global for transfer in function
 
 % find all datasets which did the replication experiment ("_archer_")
-list = dir(fullfile([PATHIN_raw]));
+list = dir(fullfile(PATHIN_raw));
 list_s = list(contains({list.name},'_archer_'));
 subj = extractBefore({list_s.name},'_archer_');
 
