@@ -12,7 +12,7 @@ clc; clear all; close all;
 filepath = fileparts(mfilename('fullpath'));
 cd (filepath)
 
-MAIN = [fileparts(pwd) '\'];
+MAIN = fullfile(fileparts(pwd));
 addpath(genpath(MAIN));
 addpath([userpath '\toolboxes\eeglab2021.0\']);
 addpath([userpath '\toolboxes\fieldtrip-20201023\']);
