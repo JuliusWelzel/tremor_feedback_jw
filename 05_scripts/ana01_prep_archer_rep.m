@@ -31,7 +31,7 @@ for s = 1:numel(subj) % all
     display(['Working on subject ' subj{s}])
      
     % load data from first paradigm
-    tmp_loud     = load_xdf([PATHIN_raw subj{s} '_archer_replicate.xdf']); %full xdf file
+    tmp_loud     = load_xdf(fullfile(PATHIN_raw,[subj{s} '_archer_replicate.xdf'])); %full xdf file
 
     ppl_arch = findLslStream(tmp_loud,'pupil_capture');
     fsr_arch = findLslStream(tmp_loud,'HX711');

@@ -14,8 +14,9 @@ cd (filepath)
 
 MAIN = fullfile(fileparts(pwd));
 addpath(genpath(MAIN));
-addpath([userpath '\toolboxes\eeglab2021.0\']);
-addpath([userpath '\toolboxes\fieldtrip-20201023\']);
+addpath(fullfile(userpath,'\toolboxes\xdf-Matlab-master'));
+addpath(fullfile(userpath,'\toolboxes\eeglab2021.0\'));
+addpath(fullfile(userpath,'\toolboxes\fieldtrip-20220104\'));
 ft_defaults
 
 %Change MatLab defaults
