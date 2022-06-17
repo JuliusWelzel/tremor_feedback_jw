@@ -42,7 +42,9 @@ for s = 1:numel(subj) % all
     eps.id = subj{s};
     
     % get ppl sampling rate
-    eps.ppl_srate = round(str2num(ppl_arch.info.sample_count)/(ppl_arch.time_stamps(end)-ppl_arch.time_stamps(1)),0);
+    if ~isempty(ppl_arch)
+        eps.ppl_srate = round(str2num(ppl_arch.info.sample_count)/(ppl_arch.time_stamps(end)-ppl_arch.time_stamps(1)),0);
+    end
 
     %% Extract marker and max force
     idx_ep_all = find(contains(mrk_arch.time_series,'epoch'));
@@ -60,6 +62,10 @@ for s = 1:numel(subj) % all
     
     % find start of blocks
     idx_blk     = find(contains(mrk_arch.time_series,'block1'));
+    if length(idx_blk) < 3
+        continue
+    end
+
     idx_blk_vo  = idx_blk(1);
     idx_blk_av  = idx_blk(2);
     idx_blk_ao  = idx_blk(3);
@@ -98,9 +104,10 @@ for s = 1:numel(subj) % all
         % extract per trial parts of force sensor
         [eps.fs(e).frc eps.fs(e).ts]        = tsBetweenMrks(fsr_arch,idx_ep_all(e)+1,idx_ep_all(e)+2,mrk_arch);
         
+        if ~isempty(ppl_arch)
         % extract per trial parts of pupil labs
         [eps.ppl(e).trial eps.ppl(e).ts]    = tsBetweenMrks(ppl_arch,idx_ep_all(e)-1,idx_ep_all(e)+2,mrk_arch);
-
+        end
 
     end
     
@@ -109,12 +116,12 @@ for s = 1:numel(subj) % all
     eps = eps.PrepForceSensor;
     eps = eps.TransferScl2deg; % change viewing angle to degree
     
-    %% restructure data for cross correltaion 
+    %% restructure data for cross correlation 
     n_sec_pad   = 2;
     dur_ep      = 30;
 
-    target_force = ones(1,length(eps.fs(idx_ep_all(1)).frc));
-    target_force   = zeroPadData(target_force,n_sec_pad * eps.frc_srate);
+    target_force  = ones(1,length(eps.fs(end-1).frc));
+    target_force  = zeroPadData(target_force,n_sec_pad * eps.frc_srate);
     time_pad = linspace(-n_sec_pad,dur_ep + n_sec_pad,(dur_ep + (2*n_sec_pad)) *  eps.frc_srate);
     
     for ep = 1:numel(idx_ep_all)
@@ -165,11 +172,12 @@ for s = 1:numel(subj) % all
 
     % plot extra stuff and save
     close all
-    eps = singleTrialPupil(eps);
-
-    save_fig(gcf,PATHOUT_plot,[subj{s} 'pupil_data']);
+    if ~isempty(ppl_arch)
+        eps = singleTrialPupil(eps);
+        save_fig(gcf,PATHOUT_plot,[subj{s} 'pupil_data']);
+    end
  
-    save([PATHOUT_prep subj{s} '_epData.mat'],'eps');
+    save(fullfile(PATHOUT_prep subj{s},'_epData.mat'),'eps');
     
     
     %% transfer 
@@ -186,6 +194,10 @@ end
 %%
 save([PATHOUT_prep 'all_trials'],'all_trials')
 
+struct_fun = @(s) any(structfun(@isempty,s)); % check the fields of a scalar structure.
+idx_corrupt = arrayfun(struct_fun,all_trials); % indices of those structure elements with ALL fields empty.
+
+all_trials(idx_corrupt) = []
 
 tab = table([all_trials.ID]',[all_trials.TrialNumber]',[all_trials.ForceCondition]',[all_trials.Scaling]',...
     [all_trials.FeedbackCondition]',[all_trials.Block]',[all_trials.AuditiveCondition]',...
@@ -196,7 +208,17 @@ tab.Properties.VariableNames = {'ID','n','ForceCondition','Scaling','FeedbackCon
     'RMSE','Outlier RMSE','Power [0-3 Hz]','Power [4-12 Hz]','Outlier Power',...
     'Pupilsize left','Outlier Ppl l','Pupilsize right','Outlier Ppl r'};
 
-writetable(tab,[PATHOUT_prep 'overview_all_trials_archer_rep.csv'])
+tab.Scaling = round(tab.Scaling,1);
+tab.group(contains(tab.ID,'c')) = "control"; 
+tab.group(contains(tab.ID,'p')) = "patient"; 
+
+tab.Scaling_str(tab.Scaling > 6) = "high";
+tab.Scaling_str(tab.Scaling < 6) = "low";
+
+U = tab(tab.Block == 'experiment',:)
+U = U(:,["ID","Power [4-12 Hz]","Scaling","group","FeedbackCondition"]);
+U = unstack(U,'Power [4-12 Hz]','Scaling');
+writetable(U,fullfile(PATHOUT_prep,'overview_all_trials_archer_rep_rmanova.csv'))
 
 
 

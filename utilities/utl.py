@@ -56,13 +56,21 @@ def remove_outliers(an_array, std_dev):
     return an_array
  
     
-def findLslStream(streams,name):
+def find_lsl_stream(streams,name):
     ''''
     Find stream in xdf file based on stream name
     '''
+    
+    stream_check = False
     for n in range(0,len(streams)):
-        if len(streams[n]["time_series"]) > 0 and streams[n]["info"]["name"] == [name]:
+        if len(streams[n]["time_series"]) > 0 and streams[n]["info"]["name"][0] == name:
             stream_oi = streams[n]
+            stream_check = True
+
+    if not stream_check:
+        stream_oi = []
+        print('Stream {} not found'.format(name))
+            
                 
     return stream_oi
     

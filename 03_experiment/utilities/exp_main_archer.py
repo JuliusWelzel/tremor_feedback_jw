@@ -206,7 +206,7 @@ def main_experiment():
 
     presRest(i,dur_trial)
     
-        for i in range(2,6):
+    for i in range(2,6):
 
         presRest(i,dur_trial)
         presTrialVisAud(i,dur_trial)
@@ -230,7 +230,7 @@ def main_experiment():
 
     presRest(i,dur_trial)
     
-        for i in range(2,6):
+    for i in range(2,6):
 
         presRest(i,dur_trial)
         presTrialVisAud(i,dur_trial)

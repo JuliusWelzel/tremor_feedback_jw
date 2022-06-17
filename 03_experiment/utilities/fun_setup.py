@@ -19,7 +19,7 @@ def presTextPsychoPy(txt):
     exp_text.draw()
     win.flip()
 
-def presGetMaxForce():
+
     
 
 def presTrialVis(i):
