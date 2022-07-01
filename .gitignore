@@ -1,5 +1,6 @@
 /04_data/00_raw/*
 /04_data/01_prep/*
+/05_scripts/.ipynb_checkpoints/*
 .idea
 .vs
 .vscode
@@ -28,3 +29,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.h
+*.exe
+*.pyc
+utilities/__pycache__/__init__.cpython-38.pyc

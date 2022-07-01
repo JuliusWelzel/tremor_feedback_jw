@@ -1,1 +1,1 @@
-from utilities.utl import findLslStream, find_nearest
+from utilities.utl import find_lsl_stream, find_nearest

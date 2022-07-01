@@ -1,15 +1,8 @@
-import cv2
 import numpy as np
 
 from scipy import signal
 from scipy.interpolate import interp1d
 
-def trackHand(image,mp_hands):
-    image.flags.writeable = False
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    results = mp_hands.process(image)
-    
-    return results
 
 def moving_average_window(data, frames_per_angle) :
     s = 0

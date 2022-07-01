@@ -6,26 +6,21 @@ import numpy as np
 from scipy import stats
 from pathlib import Path
 import sys
-import pandas as pd
 import datetime
 
-
-MAINPATH = Path(__file__).parent.parent.absolute()
-os.chdir(MAINPATH)
-sys.path.insert(0,MAINPATH)
-print(sys.path)
-from utilities.utl import findLslStream, find_nearest
+from utilities.utl import find_lsl_stream, find_nearest
 from utilities.pupil_prep import *
 from utilities.SingleSubjectData import SingleSubjectArcherRep
 
 
 # (import) helper functions
+MAINPATH = Path(__file__).parent.absolute()
 DATARAWPATH = Path.joinpath(MAINPATH, "04_data","00_raw")
 
 f_list = os.listdir(DATARAWPATH)
 str_match = 'archer'
 fnms = [s for s in f_list if str_match in s]
-f = fnms[25]
+f = fnms[12]
 
 sub = SingleSubjectArcherRep()
 sub.load_data(DATARAWPATH,f)
@@ -33,9 +28,9 @@ sub.load_data(DATARAWPATH,f)
     # load xdf file
     
 streams, _ = pyxdf.load_xdf(os.path.join(DATARAWPATH,f))
-fsr  = findLslStream(streams, 'HX711')
-mrk = findLslStream(streams, 'PsychoPyMarkers')
-eye = findLslStream(streams, 'pupil_capture')
+fsr  = find_lsl_stream(streams, 'HX711')
+mrk = find_lsl_stream(streams, 'PsychoPyMarkers')
+eye = find_lsl_stream(streams, 'pupil_capture')
 
 
 sub_id = f.split('_')[0]
