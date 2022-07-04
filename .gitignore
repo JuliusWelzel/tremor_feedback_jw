@@ -33,3 +33,6 @@ MANIFEST
 *.exe
 *.pyc
 utilities/__pycache__/__init__.cpython-38.pyc
+
+# specific files
+!04_data/00_raw/*.csv
