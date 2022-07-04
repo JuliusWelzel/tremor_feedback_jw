@@ -13,8 +13,8 @@ function [ts_cut samples_cut] = tsBetweenMrks(ts,mrk1,mrk2,mk)
 %           samples_cut = corresponding timesstamps
 %
 % Author: Julius Welzel, University of Kiel, September 2020
-% Contact: j.welzel@nurologie.uni-kiel.de //
-% https://github.com/JuliusWelzel/int_trmr_eeg
+% Contact: j.welzel@nurologie.uni-kiel.de 
+
 
 
     % check if overlapping time points are present
@@ -23,7 +23,7 @@ function [ts_cut samples_cut] = tsBetweenMrks(ts,mrk1,mrk2,mk)
         return
     end
 
-    % find positoin of first and second marker in timeseries
+    % find positon of first and second marker in timeseries
     [neg idx_start] = min((ts.time_stamps - mk.time_stamps(mrk1)).^2);
     [neg idx_end] = min((ts.time_stamps - mk.time_stamps(mrk2)).^2);
 

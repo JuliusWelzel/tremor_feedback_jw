@@ -177,7 +177,7 @@ for s = 1:numel(subj) % all
         save_fig(gcf,PATHOUT_plot,[subj{s} 'pupil_data']);
     end
  
-    save(fullfile(PATHOUT_prep subj{s},'_epData.mat'),'eps');
+    save(fullfile(PATHOUT_prep,[subj{s} '_epData.mat']),'eps');
     
     
     %% transfer 
