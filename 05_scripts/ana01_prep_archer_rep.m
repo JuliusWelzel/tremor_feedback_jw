@@ -25,7 +25,7 @@ subj = extractBefore({list_s.name},'_archer_');
 
 %% Loop over subs
  
-for s = 1:numel(subj) % all 
+for s = 1%:numel(subj) % all 
     
     clear eps
     display(['Working on subject ' subj{s}])

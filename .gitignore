@@ -5,6 +5,7 @@
 .vs
 .vscode
 utilities/__pycache__/*
+/trmr_fdck/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

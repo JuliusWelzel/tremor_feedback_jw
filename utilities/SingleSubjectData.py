@@ -1,6 +1,7 @@
 import datetime
 import os
 from pathlib import Path
+from pandas import Int8Dtype, StringDtype
 import pyxdf
 import numpy as np
 
@@ -38,13 +39,13 @@ class SubjectData:
 
         # load xdf file
         streams, _ = pyxdf.load_xdf(os.path.join(datapath,fname))
-        fsr  = find_lsl_stream(streams, 'HX711')
-        mrk = find_lsl_stream(streams, 'PsychoPyMarkers')
-        eye = find_lsl_stream(streams, 'pupil_capture')
+        self.fsr  = find_lsl_stream(streams, 'HX711')
+        self.mrk = find_lsl_stream(streams, 'PsychoPyMarkers')
+        self.eye = find_lsl_stream(streams, 'pupil_capture')
         
         # find amx force if avaliable
         try:
-            nms_mrk = [nm_mrk for mrk_ in mrk["time_series"] for nm_mrk in mrk_]
+            nms_mrk = [nm_mrk for mrk_ in self.mrk["time_series"] for nm_mrk in mrk_]
             self.max_force = float([nm for nm in nms_mrk if nm.startswith('max_force')][0].split('_')[2])
             print(f"Max force is {self.max_force:.0f} something")
         except:
@@ -53,17 +54,26 @@ class SubjectData:
 
         # exp infos
         idxs_eps_end = [i for i,nm in enumerate(nms_mrk) if 'end_trial' in nm]
-        times_eps_end = mrk['time_stamps'][idxs_eps_end]
+        times_eps_end = self.mrk['time_stamps'][idxs_eps_end]
         self.n_epochs = len(idxs_eps_end)
-        self.n_trigger = len(mrk["time_series"])
+        self.n_trigger = len(self.mrk["time_series"])
 
         # hardware infos ppl
-        if eye:
-            self.srate_ppl = len(eye["time_stamps"])/(eye["time_stamps"][-1]-eye["time_stamps"][0])
-            self.per_bad_eye = round((sum(eye["time_series"][:,0]<.5) / len(eye["time_series"][:,0])) * 100 ,3)
-        elif not eye:
+        if self.eye:
+            self.srate_ppl = len(self.eye["time_stamps"])/(self.eye["time_stamps"][-1]-self.eye["time_stamps"][0])
+            self.per_bad_eye = round((sum(self.eye["time_series"][:,0]<.5) / len(self.eye["time_series"][:,0])) * 100 ,3)
+        elif not self.eye:
             self.srate_ppl = np.nan
             self.per_bad_eye = np.nan
+
+    def epoch(self):
+        print(f"{self.n_epochs:.0f} full epochs found")
+
+
+
+        
+ 
+        
             
             
 
