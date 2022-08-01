@@ -5,7 +5,7 @@ from pandas import Int8Dtype, StringDtype
 import pyxdf
 import numpy as np
 
-from utilities.utl import find_lsl_stream
+from utilities.utl import find_lsl_stream, find_nearest
 
 class SubjectData:
     
@@ -67,7 +67,24 @@ class SubjectData:
             self.per_bad_eye = np.nan
 
     def epoch(self):
-        print(f"{self.n_epochs:.0f} full epochs found")
+        print(f"{self.n_epochs:.0f} completed epochs found")
+
+    def prep_pupil(self):
+        # find all epochs markers
+        nms_mrk         = [nm_mrk for mrk_ in self.mrk["time_series"] for nm_mrk in mrk_]
+        idxs_eps_end    = [i for i,nm in enumerate(nms_mrk) if 'end_trial' in nm]
+        idxs_eps_start  =[idx -1 for idx in idxs_eps_end]
+        times_eps_start = self.mrk['time_stamps'][idxs_eps_start]
+        times_eps_end   = self.mrk['time_stamps'][idxs_eps_end]
+
+        # loop over epochs end markers to process full epochs
+        idx_ep_start    = []
+        idx_ep_end      = []
+        for e_ts in times_eps_end:
+            idx_ep_end.append(find_nearest(self.mrk["time_stamps"],e_ts))
+            
+            print(self.mrk["time_stamps"][idx_ep_end][-1]-self.mrk["time_stamps"][idx_ep_end[-1] - 2])
+        
 
 
 
