@@ -1,9 +1,11 @@
 import datetime
 import os
 from pathlib import Path
+import pandas as pd
 from pandas import Int8Dtype, StringDtype
 import pyxdf
 import numpy as np
+import matplotlib.pyplot as plt
 
 from utilities.utl import find_lsl_stream, find_nearest
 
@@ -121,44 +123,80 @@ class Epochs:
         to the event id integers.
     """
 
-    def __init__(self, data, times, events=None, event_id=None):
+    def __init__(self, subject, data, times, events=None, event_id=None, srate = None):
         
+        time_0 = min(min(subject.eye["time_stamps"]),min(subject.fsr["time_stamps"]))
+        self.srate = srate
+
         # prep inputs
-        data    = np.asanyarray(data,dtype=np.float64)
-        times   = np.asanyarray(times,dtype=np.float64)     
+        self.data    = np.transpose(np.asanyarray(data,dtype=np.float64))
+        self.times   = np.asanyarray(times - time_0,dtype=np.float64)  # first sample is time 0
 
-        if isinstance(events,list):
-            nms_mrk     = [nm_mrk for mrk_ in events["time_series"] for nm_mrk in mrk_]
+        # sort according to timestamps
+        idx_ts = np.argsort(self.times)
+        self.data = self.data[:,idx_ts]   
+        self.times = self.times[idx_ts]
 
-        ## check inputs
+        # translate events from xdf to pd
+        events_value    = [nm_mrk for mrk_ in events["time_series"] for nm_mrk in mrk_]
+        events_time     = events["time_stamps"] - time_0 # relate events to start at 0
+
+        self.events = pd.DataFrame(list(zip(events_value, events_time)),
+               columns =['value', 'time'])
+
         # check input data
         if  times.shape[0] != data.shape[0]:
             raise ValueError('Data and times have different amount of samples')
-        if data.ndim == 2 and events and not event_id:
-            raise AttributeError('Specify events to epoch the data in event_id')
-        if data.ndim != 3 and events:
+        if data.ndim == 2 and events and event_id:
+            print('Data will be epoched to ' + event_id)
+        if data.ndim != 3 and events and event_id:
             raise ValueError('Data must be a 3D array of shape (n_channels, '
                              'n_samples, n_epochs)')
-        # check input events
-        if not any(events.index(event_id)):
-            raise AttributeError('Event for epoching not present in events')
+        if not srate:
+            raise AttributeError('Sampling rate must be spcified') 
 
         
-    def epoch(self, event_id=None, tmin=-0.2, tmax=0.5):
-        # extract meta data from fname
-        self.id = fname.split('_')[0]
-        self.date = datetime.datetime.fromtimestamp(int(float(Path(os.path.join(datapath,fname)).stat().st_ctime))).date()
-        self.time = datetime.datetime.fromtimestamp(int(float(Path(os.path.join(datapath,fname)).stat().st_ctime))).time()
+    def epoch(self, event_id, idx_start = 0, tmin=-0.2, tmax=0.5):
 
-        streams, _ = pyxdf.load_xdf(os.path.join(datapath,fname))
-        fsr  = find_lsl_stream(streams, 'HX711')
-        mrk = find_lsl_stream(streams, 'PsychoPyMarkers')
-        eye = find_lsl_stream(streams, 'pupil_capture')
+        if self.data.ndim == 3:
+            raise ValueError('Data has already been epoched')
+
+        if not event_id:
+            raise AttributeError('Specify event_id for epoching')
+    
+        self.events = self.events.iloc[idx_start:]
+        # extract times for mathcing events
+        idx_event_id = self.events[self.events["value"].str.match(event_id)].index
+        if not idx_event_id.any():
+            raise ValueError ('No matching event value found')
+
+        # find time stamps closest to events_oi in data times
+        ts_ep_events = self.events["time"][idx_event_id]
+     
+        idx_event_id_match = []
+        for ts in ts_ep_events:
+            idx = find_nearest(self.times,ts)
+            idx_event_id_match.append(idx)
+
+        # do the actual epoching
+        n_epochs = len(idx_event_id_match)
+        n_samples_epoch = int(np.absolute(np.diff([tmax,tmin])) * self.srate)
+        data_epoched = np.ones(shape=(self.data.shape[0],int(n_samples_epoch ) ,n_epochs))
+
+        ep_win_to_start = int(tmin * self.srate)
+        ep_win_to_end = int(tmax * self.srate)
+        ##
+        #check ep window size
+        #
+        #
+        #
+        #
+        #
+        #
+        for i,idx in enumerate(idx_event_id_match):
+            data_epoched[:,:,i] = self.data[:,idx + ep_win_to_start:idx + ep_win_to_end]
+
+        self.data = data_epoched
+        self.times = np.linspace(0, int(n_samples_epoch // self.srate), n_samples_epoch )
+
         
-        try:
-            nms_mrk = [nm_mrk for mrk_ in mrk["time_series"] for nm_mrk in mrk_]
-            max_f = float([nm for nm in nms_mrk if nm.startswith('max_force')][0].split('_')[2])
-            print(f"Max force is {max_f:.0f} something")
-        except:
-            max_f = np.nan
-            print("No max force found")
