@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pyxdf
 from scipy.stats import median_absolute_deviation as mad
+from utilities.utl import fill_nan
 
 #from statsmodels.stats.anova import AnovaRM
 #import statsmodels.formula.api as smf
@@ -90,12 +91,11 @@ def delete_outliers(data, whsize, n_mad, doplot):
 
     return outlier_idx, data_out
 
+    
 def delete_velocity_outliers(data, whsize, n_mad, doplot=False):
     """
     Find statistical outliers of the data's first derivative,
-    replace outliers with NaN
-
-    TODO: sliding window or not ??
+    replace outliers with NaN.
 
     Args:
       data : 1D numpy array, (pupil diameter, time series)
@@ -113,7 +113,7 @@ def delete_velocity_outliers(data, whsize, n_mad, doplot=False):
 
     #''' without sliding window
     diff_med = np.nanmedian(data_diff)
-    diff_mad = mad(data_diff)
+    diff_mad = mad(data_diff,nan_policy='omit')
     outlier_idx = np.where( np.abs((data_diff-diff_med)/diff_mad) > n_mad )[0]
     data_out[outlier_idx] = np.nan
     #'''
@@ -145,7 +145,7 @@ def delete_velocity_outliers(data, whsize, n_mad, doplot=False):
 
     return outlier_idx, data_out
 
-def blink_detection(x, w_smooth=9, doplot=False):
+def blink_detection( x , w_smooth=9, doplot=False):
     """
     Detect eyeblinks in pupillometry data.
     Adapted from:
@@ -172,6 +172,7 @@ def blink_detection(x, w_smooth=9, doplot=False):
 
     # [3] smooth the time course
     h_boxcar = np.ones(w_smooth, dtype=np.float)/w_smooth
+    xc = fill_nan(xc)
     xc = np.convolve(xc, h_boxcar, 'same')
     # derivative of the smoothed time course
     dx = np.diff(xc)

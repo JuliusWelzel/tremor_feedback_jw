@@ -45,7 +45,7 @@ class SubjectData:
         self.mrk = find_lsl_stream(streams, 'PsychoPyMarkers')
         self.eye = find_lsl_stream(streams, 'pupil_capture')
         
-        # find amx force if avaliable
+        # find max force if avaliable
         try:
             nms_mrk = [nm_mrk for mrk_ in self.mrk["time_series"] for nm_mrk in mrk_]
             self.max_force = float([nm for nm in nms_mrk if nm.startswith('max_force')][0].split('_')[2])
@@ -67,35 +67,8 @@ class SubjectData:
         elif not self.eye:
             self.srate_ppl = np.nan
             self.per_bad_eye = np.nan
-
-    def prep_pupil(self):
-        # find all exp epochs markers
-        nms_mrk         = [nm_mrk for mrk_ in self.mrk["time_series"] for nm_mrk in mrk_]
-        idx_exp_start   = nms_mrk.index("block1")
-        idxs_eps_end    = [i for i,nm in enumerate(nms_mrk) if 'end_trial' in nm and i > idx_exp_start]
-        idxs_eps_start  =[idx -1 for idx in idxs_eps_end]
-        times_eps_start = self.mrk['time_stamps'][idxs_eps_start]
-        times_eps_end   = self.mrk['time_stamps'][idxs_eps_end]
-
-        # loop over epochs end markers to process full epochs
-        idx_ep_start    = []
-        idx_ep_end      = []
-        for e_ts in times_eps_end:
-            idx_ep_end.append(find_nearest(self.mrk["time_stamps"],e_ts))
-            
-            print(self.mrk["time_stamps"][idx_ep_end][-1]-self.mrk["time_stamps"][idx_ep_end[-1] - 2])
-        
-
-
-
-        
- 
-        
             
             
-
-        
-
 
 class Epochs:
     """Epochs object from numpy array.
@@ -180,23 +153,15 @@ class Epochs:
 
         # do the actual epoching
         n_epochs = len(idx_event_id_match)
-        n_samples_epoch = int(np.absolute(np.diff([tmax,tmin])) * self.srate)
-        data_epoched = np.ones(shape=(self.data.shape[0],int(n_samples_epoch ) ,n_epochs))
-
         ep_win_to_start = int(tmin * self.srate)
         ep_win_to_end = int(tmax * self.srate)
-        ##
-        #check ep window size
-        #
-        #
-        #
-        #
-        #
-        #
+        n_samples_epoch = abs(ep_win_to_start) + ep_win_to_end
+        data_epoched = np.ones(shape=(self.data.shape[0],int(n_samples_epoch ) ,n_epochs))
+
         for i,idx in enumerate(idx_event_id_match):
             data_epoched[:,:,i] = self.data[:,idx + ep_win_to_start:idx + ep_win_to_end]
 
         self.data = data_epoched
-        self.times = np.linspace(0, int(n_samples_epoch // self.srate), n_samples_epoch )
+        self.times = np.linspace(0, int(n_samples_epoch / self.srate), n_samples_epoch )
 
         
