@@ -49,7 +49,7 @@ class SubjectData:
         try:
             nms_mrk = [nm_mrk for mrk_ in self.mrk["time_series"] for nm_mrk in mrk_]
             self.max_force = float([nm for nm in nms_mrk if nm.startswith('max_force')][0].split('_')[2])
-            print(f"Max force is {self.max_force:.0f} something")
+            print(f"Max force is {self.max_force:.0f} something for {self.id}")
         except:
             self.max_force = np.nan
             print("No max force found")

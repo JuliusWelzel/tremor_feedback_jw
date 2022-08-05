@@ -1,22 +1,30 @@
 import numpy as np
-
 from scipy import signal
 from scipy.interpolate import interp1d
 
 
-def moving_average_window(data, frames_per_angle) :
-    s = 0
+def moving_average_window(data, win_size):
+    """Implementation of moving average rolling window
+
+    Args:
+        data (ndarray): Any ndarray which is converted to numpy
+        win_size (int): Window size for average
+
+    Returns:
+        avg_data (ndarray): Data after moving average has been used
+    """
+    sample = 0
     avg_data = np.array([])
-    while s < len(data):
-        ret = np.nanmean(data[s:s+frames_per_angle])
+    while sample < len(data):
+        ret = np.nanmean(data[sample:sample+win_size])
         avg_data = np.append(avg_data,ret)
-        s += (frames_per_angle + 1)
+        sample += (win_size + 1)
     return avg_data
 
 def fill_nan(data2fill):
-    '''
+    """
     interpolate to fill nan values
-    '''
+    """
     inds = np.arange(data2fill.shape[0])
     good = np.where(np.isfinite(data2fill))
     if len(good[0]) > 1:        
@@ -32,7 +40,7 @@ def amp_per_angle(data,frames_per_angle,chn_idx):
     while s < len(data) - 1:
         tmp_data = data[s:s+frames_per_angle,chn_idx]
         int_data = fill_nan(tmp_data)
-        f, Pxx_spec = signal.welch(int_data, 30, window='hamming',nperseg=60, scaling='spectrum')        
+        _, Pxx_spec = signal.welch(int_data, 30, window='hamming',nperseg=60, scaling='spectrum')        
         epoch_max_amp = np.append(epoch_max_amp,Pxx_spec[0:4].sum())
         s += frames_per_angle
     return epoch_max_amp
@@ -50,9 +58,9 @@ def remove_outliers(an_array, std_dev):
  
     
 def find_lsl_stream(streams,name):
-    ''''
+    """'
     Find stream in xdf file based on stream name
-    '''
+    """
     
     stream_check = False
     for n in range(0,len(streams)):
@@ -107,7 +115,7 @@ def resample_mp_pos(pos_data, new_size, pad = False):
     npad  = 0
     # add padding if wanted
     if pad:
-        npad, extra     = divmod(2 ** (new_size // max(orig_shape)),2)
+        npad, _     = divmod(2 ** (new_size // max(orig_shape)),2)
         pos_data        = np.pad(pos_data,((0,0), (npad,npad)), mode = 'edge') 
         
     # calculate resampling factor (including padding)
@@ -126,21 +134,40 @@ def resample_mp_pos(pos_data, new_size, pad = False):
     
 
 def fill_nan_edges(a):
-    '''
+    """
     check array edges and pad with closest mean
-    '''
+    """
     ind = np.where(~np.isnan(a))[0]
     first, last = ind[0], ind[-1]
     a[:first] = a[first]
     a[last + 1:] = a[last]
     
-    '''
-    interpolate nans in array not at edges
-    '''
+    # interpolate nans in array not at edges
     nans    = np.isnan(a)
     x       = lambda z: z.nonzero()[0]
     a[nans]= np.interp(x(nans), x(~nans), a[~nans])
     
     return a
+
+
+def get_channel_labels_ppl_xdf(ppl):
+    """This function returns the labels from the PupilLabs Code LSL outlet as used in the XDF file.
+
+    Args:
+        ppl (dict): stream type from PupilLabsLSL capture outlet
+
+    Returns:
+        nms_ppl(list): label names from LSL outlet (gitRepo)[https://github.com/labstreaminglayer/App-PupilLabs/tree/master/pupil_capture]
+    """
+
+    ch_info = ppl["info"]["desc"][0]["channels"][0]
+    len(ch_info["channel"])
+
+    nms_ppl = []
+    for i,ch in enumerate(ch_info["channel"]):
+        nms_ppl.append(ch[i].get('label')[0])
+
+    return nms_ppl
+
 
 
