@@ -5,7 +5,6 @@ import pandas as pd
 from pandas import Int8Dtype, StringDtype
 import pyxdf
 import numpy as np
-import matplotlib.pyplot as plt
 
 from utilities.utl import find_lsl_stream, find_nearest
 
