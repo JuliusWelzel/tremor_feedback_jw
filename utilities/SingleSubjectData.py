@@ -163,4 +163,11 @@ class Epochs:
         self.data = data_epoched
         self.times = np.linspace(0, int(n_samples_epoch / self.srate), n_samples_epoch )
 
+
+        def pl_clean_blinks(self,confidence_threshold = 0.5):
+            # to do
+            print('not finished')
+
+        
+
         
