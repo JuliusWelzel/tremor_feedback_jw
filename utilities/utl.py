@@ -165,7 +165,7 @@ def get_channel_labels_ppl_xdf(ppl):
 
     nms_ppl = []
     for i,ch in enumerate(ch_info["channel"]):
-        nms_ppl.append(ch[i].get('label')[0])
+        nms_ppl.append(ch.get('label')[0])
 
     return nms_ppl
 
