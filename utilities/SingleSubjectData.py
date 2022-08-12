@@ -1,6 +1,7 @@
 import datetime
 import os
 from pathlib import Path
+from scipy import signal
 import pandas as pd
 from pandas import Int8Dtype, StringDtype
 import pyxdf
@@ -97,10 +98,17 @@ class Epochs:
 
     def __init__(self, subject, data, times, events=None, event_id=None, srate = None):
         
-        time_0 = min(min(subject.eye["time_stamps"]),min(subject.fsr["time_stamps"]))
+        if not subject.eye:
+            time_0_eye = np.nan
+        else:
+            time_0_eye = min(subject.eye["time_stamps"])     
+        
+        time_0 = min(time_0_eye,min(subject.fsr["time_stamps"]))
         self.srate = srate
 
         # prep inputs
+        if data.ndim == 1:
+            data = data[:,None]
         self.data    = np.transpose(np.asanyarray(data,dtype=np.float64))
         self.times   = np.asanyarray(times - time_0,dtype=np.float64)  # first sample is time 0
 
@@ -116,7 +124,7 @@ class Epochs:
         self.events = pd.DataFrame(list(zip(events_value, events_time)),
                columns =['value', 'time'])
 
-        # check input data
+        # check output data
         if  times.shape[0] != data.shape[0]:
             raise ValueError('Data and times have different amount of samples')
         if data.ndim == 2 and events and event_id:
@@ -128,7 +136,7 @@ class Epochs:
             raise AttributeError('Sampling rate must be spcified') 
 
         
-    def epoch(self, event_id, idx_start = 0, tmin=-0.2, tmax=0.5):
+    def epoch(self, event_id, idx_start = 0, tmin=-0.2, tmax=0.5, resample_epochs = False):
 
         if self.data.ndim == 3:
             raise ValueError('Data has already been epoched')
@@ -150,23 +158,27 @@ class Epochs:
             idx = find_nearest(self.times,ts)
             idx_event_id_match.append(idx)
 
-        # do the actual epoching
+        # cfgs for epoching
         n_epochs = len(idx_event_id_match)
         ep_win_to_start = int(tmin * self.srate)
         ep_win_to_end = int(tmax * self.srate)
         n_samples_epoch = abs(ep_win_to_start) + ep_win_to_end
-        data_epoched = np.ones(shape=(self.data.shape[0],int(n_samples_epoch ) ,n_epochs))
+        data_epoched = np.ones(shape=(self.data.shape[0], int(n_samples_epoch ), n_epochs))
 
-        for i,idx in enumerate(idx_event_id_match):
-            data_epoched[:,:,i] = self.data[:,idx + ep_win_to_start:idx + ep_win_to_end]
-
-        self.data = data_epoched
+        # specify time vector for epoch 
         self.times = np.linspace(0, int(n_samples_epoch / self.srate), n_samples_epoch )
 
+        # do the actual epoching
+        for i,idx in enumerate(idx_event_id_match):
+            tmp_epoch = []
+            tmp_epoch = self.data[:,idx + ep_win_to_start:idx + ep_win_to_end]
 
-        def pl_clean_blinks(self,confidence_threshold = 0.5):
-            # to do
-            print('not finished')
+            if resample_epochs:
+                tmp_epoch = signal.resample(tmp_epoch,n_samples_epoch, axis = 1)
+            data_epoched[:,:,i] = tmp_epoch
+
+        self.data = data_epoched
+        
 
         
 
