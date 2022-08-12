@@ -169,5 +169,19 @@ def get_channel_labels_ppl_xdf(ppl):
 
     return nms_ppl
 
+def axlines_with_text(ax, ax_position, str_label, axis='x'):
+
+    if axis not in ['x','y']:
+        raise ValueError('axis specification msut be x or y')
+
+    ymin, ymax = ax.get_ylim()
+    xmin, xmax = ax.get_xlim()
+
+    if axis == 'x':
+        ax.axvline(ax_position, c='k',ls = '--', lw = .5)
+        ax.text(x=ax_position, y=(ymax + ymin) / 2, s=str_label, ha='center', va='center',rotation='vertical', backgroundcolor='white')
+    elif axis == 'y':
+        ax.axhline(ax_position, c='k',ls = '--', lw = .5)
+        ax.text(x=(xmax + xmin) / 2, y=ax_position, s=str_label, ha='center', va='center',rotation='horizontal', backgroundcolor='white')
 
 
