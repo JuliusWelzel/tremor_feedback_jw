@@ -185,3 +185,9 @@ def axlines_with_text(ax, ax_position, str_label, axis='x'):
         ax.text(x=(xmax + xmin) / 2, y=ax_position, s=str_label, ha='center', va='center',rotation='horizontal', backgroundcolor='white')
 
 
+def polygon_under_graph(x, y):
+    """
+    Construct the vertex list which defines the polygon filling the space under
+    the (x, y) line graph. This assumes x is in ascending order.
+    """
+    return [(x[0], 0.), *zip(x, y), (x[-1], 0.)]

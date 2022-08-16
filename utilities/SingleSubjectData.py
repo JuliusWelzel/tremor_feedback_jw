@@ -96,7 +96,7 @@ class Epochs:
         to the event id integers.
     """
 
-    def __init__(self, subject, data, times, events=None, event_id=None, srate = None):
+    def __init__(self, subject, data, times, events=None, event_id=None, srate = None, max_force = None):
         
         if not subject.eye:
             time_0_eye = np.nan
