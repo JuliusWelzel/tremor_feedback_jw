@@ -105,6 +105,7 @@ class Epochs:
         
         time_0 = min(time_0_eye,min(subject.fsr["time_stamps"]))
         self.srate = srate
+        self.max_force = max_force
 
         # prep inputs
         if data.ndim == 1:
