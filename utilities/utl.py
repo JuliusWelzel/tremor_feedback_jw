@@ -191,3 +191,14 @@ def polygon_under_graph(x, y):
     the (x, y) line graph. This assumes x is in ascending order.
     """
     return [(x[0], 0.), *zip(x, y), (x[-1], 0.)]
+
+def remove_outliers(df,columns,n_std):
+    for col in columns:
+        print('Working on column: {}'.format(col))
+        
+        mean = df[col].mean()
+        sd = df[col].std()
+        
+        df = df[(df[col] <= mean+(n_std*sd))]
+        
+    return df
