@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 from scipy import signal
 import pandas as pd
-from pandas import Int8Dtype, StringDtype
 import pyxdf
 import numpy as np
 
@@ -103,7 +102,7 @@ class Epochs:
         else:
             time_0_eye = min(subject.eye["time_stamps"])     
         
-        time_0 = min(time_0_eye,min(subject.fsr["time_stamps"]))
+        time_0 = np.nanmin([time_0_eye,min(subject.fsr["time_stamps"])])
         self.srate = srate
         self.max_force = max_force
 
@@ -134,8 +133,7 @@ class Epochs:
             raise ValueError('Data must be a 3D array of shape (n_channels, '
                              'n_samples, n_epochs)')
         if not srate:
-            raise AttributeError('Sampling rate must be spcified') 
-
+            raise AttributeError('Sampling rate must be spcified')
         
     def epoch(self, event_id, idx_start = 0, tmin=-0.2, tmax=0.5, resample_epochs = False):
 
