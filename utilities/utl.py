@@ -192,13 +192,31 @@ def polygon_under_graph(x, y):
     """
     return [(x[0], 0.), *zip(x, y), (x[-1], 0.)]
 
-def remove_outliers(df,columns,n_std):
+def remove_outliers_df(df,columns,n_std):
+    """Removes all rows from pandas df based on outliers in one column.
+
+    Args:
+        df (DataFrame): Data as pd dataframe
+        columns (string): Name of column with outliers
+        n_std (int): Number of STD to declare outlier
+
+    Returns:
+        Dataframe: Clean dataframe
+    """
+
+    if ~isinstance(columns,list):
+        columns = list(columns)
+
+    
     for col in columns:
+        if ~isinstance(col,str):
+            col = str(col)
+
         print('Working on column: {}'.format(col))
         
         mean = df[col].mean()
         sd = df[col].std()
         
-        df = df[(df[col] <= mean+(n_std*sd))]
+        df = df[np.logical_and(df[col] <= mean+(n_std*sd),df[col] >= mean-(n_std*sd))]
         
     return df
