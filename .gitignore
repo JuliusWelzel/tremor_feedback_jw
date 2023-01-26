@@ -1,5 +1,7 @@
 /04_data/00_raw/*
 /04_data/01_prep/*
+/data/00_raw/*
+/data/01_prep/*
 /05_scripts/.ipynb_checkpoints/*
 .idea
 .vs

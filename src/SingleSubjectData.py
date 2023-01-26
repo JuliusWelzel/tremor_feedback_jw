@@ -6,7 +6,7 @@ import pandas as pd
 import pyxdf
 import numpy as np
 
-from utilities.utl import find_lsl_stream, find_nearest
+from src.utl import find_lsl_stream, find_nearest
 
 class SubjectData:
     
