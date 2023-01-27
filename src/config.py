@@ -47,10 +47,11 @@ else:
 # These are relevant directories which are used in the analysis.
 
 # (import) helper functions
-dir_proj = Path("__file__").parent.absolute()
+dir_proj = Path(r"C:\Users\User\Desktop\kiel\tremor_feedback_jw\src").parent.absolute()
 dir_rawdata = define_dir(Path.joinpath(dir_proj, "data"), "00_raw")
 dir_prep = define_dir(Path.joinpath(dir_proj, "data"), "01_prep")
 dir_stats = define_dir(Path.joinpath(dir_proj, "data"), "02_stats")
+dir_plots = Path.joinpath(dir_proj, "plots", "01_single_trial")
 
 ###############################################################################
 # These are all the relevant parameters for the analysis.
@@ -68,7 +69,5 @@ cfg_mov_win_oi = [0.1, 3]  # Hz
 # times for baseline (bl) and epoch (ep)
 cfg_time_bl = [-10, -2]  # s
 cfg_time_trial = [5, 20]  # s
-cfg_time_ep = [0, 30]  # s
-
-# pupil preprocessing
-cfg_conv_kernel_sz = 120  # samples
+cfg_time_ep_fsr = [0, 30]  # s
+cfg_time_ep_pupil = [-12, 30]  # s

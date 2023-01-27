@@ -95,7 +95,7 @@ class Epochs:
         to the event id integers.
     """
 
-    def __init__(self, subject, data, times, events=None, event_id=None, srate = None, max_force = None):
+    def __init__(self, subject, data, times, events=None, event_id=None, srate = None, max_force = None,):
         
         if not subject.eye:
             time_0_eye = np.nan
@@ -122,7 +122,7 @@ class Epochs:
         events_time     = events["time_stamps"] - time_0 # relate events to start at 0
 
         self.events = pd.DataFrame(list(zip(events_value, events_time)),
-               columns =['value', 'time'])
+                columns =['value', 'time'])
 
         # check output data
         if  times.shape[0] != data.shape[0]:
@@ -131,11 +131,11 @@ class Epochs:
             print('Data will be epoched to ' + event_id)
         if data.ndim != 3 and events and event_id:
             raise ValueError('Data must be a 3D array of shape (n_channels, '
-                             'n_samples, n_epochs)')
+                            'n_samples, n_epochs)')
         if not srate:
             raise AttributeError('Sampling rate must be spcified')
         
-    def epoch(self, event_id, idx_start = 0, tmin=-0.2, tmax=0.5, resample_epochs = False):
+    def epoch(self, event_id, idx_start = 0, tmin=-0.2, tmax=0.5, resample_epochs = False, time_offset = 0):
 
         if self.data.ndim == 3:
             raise ValueError('Data has already been epoched')
@@ -151,7 +151,7 @@ class Epochs:
 
         # find time stamps closest to events_oi in data times
         ts_ep_events = self.events["time"][idx_event_id]
-     
+
         idx_event_id_match = []
         for ts in ts_ep_events:
             idx = find_nearest(self.times,ts)
@@ -165,7 +165,7 @@ class Epochs:
         data_epoched = np.ones(shape=(self.data.shape[0], int(n_samples_epoch ), n_epochs))
 
         # specify time vector for epoch 
-        self.times = np.linspace(0, int(n_samples_epoch / self.srate), n_samples_epoch )
+        self.times = np.linspace(0, int(n_samples_epoch / self.srate), n_samples_epoch ) + time_offset
 
         # do the actual epoching
         for i,idx in enumerate(idx_event_id_match):
