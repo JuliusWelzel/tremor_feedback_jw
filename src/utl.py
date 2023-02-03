@@ -85,6 +85,38 @@ def find_nearest(array, value):
     return idx
 
 
+# Create a function to match individuals by gender and age
+def match_groups(group1, group2, key):
+    """_summary_
+
+    Args:
+        group1 (df): PD df with data from group 1
+        group2 (df): PD df with data from group 2
+        key (string): String with column to match data
+
+    Returns:
+        list: List of matched IDs
+    """
+
+    matches = []
+    matched_group2_indexes = []
+    for i, row1 in group1.iterrows():
+        min_difference = np.inf
+        match_index = -1
+        for j, row2 in group2.iterrows():
+            if j not in matched_group2_indexes:
+                difference = abs(row1[key] - row2[key])
+                if difference < min_difference:
+                    min_difference = difference
+                    match_index = j
+                    
+        if match_index != -1:
+            matches.append((row1['ID'], group2.loc[match_index]['ID']))
+            matched_group2_indexes.append(match_index)
+
+    return matches
+
+
 ###############################################################################
 # implement padding for resampling
 ###############################################################################
