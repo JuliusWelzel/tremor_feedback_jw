@@ -81,8 +81,8 @@ for f in tmp_fnms:
         continue
 
     # skip participant if more than 25% of pupil data is artifact (Murphy, 2014)
-    per_bad_diff = np.sum(np.diff(sub.eye["time_series"][:,cfg_idx_eye]) > 0.075) / len(sub.eye["time_series"][:,0]) 
-    per_bad_dia = np.sum(sub.eye["time_series"][:,cfg_idx_eye] < 1.5) / len(sub.eye["time_series"][:,0])  
+    per_bad_diff = np.sum(np.diff(sub.eye["time_series"][:,cfg_idx_eye]) > 0.075) / len(sub.eye["time_series"][:,0])
+    per_bad_dia = np.sum(sub.eye["time_series"][:,cfg_idx_eye] < 1.5) / len(sub.eye["time_series"][:,0])
     if per_bad_diff > 0.25 or per_bad_dia > 0.25:
         flag_dataset_artifact = True
 
@@ -97,7 +97,7 @@ for f in tmp_fnms:
 
     # cfgs for epoched data
     ch_oi = ['diameter1_3d']
-    idx_ch_oi = [nms_ppl.index(key) for key in ch_oi]   
+    idx_ch_oi = [nms_ppl.index(key) for key in ch_oi]
 
     tmp_view_angle = eps.events["value"][eps.events["value"].str.contains('sfb') ].str.split('_').str[3].astype(float).round(2)
 
@@ -105,7 +105,7 @@ for f in tmp_fnms:
                                 constrained_layout=True)
     # prep single trial pupil data
     for i in range(eps.data.shape[2]):
-            
+
         data_median  =  np.nanmedian(eps.data[idx_ch_oi,:,i])
         data_std     = np.nanstd(eps.data[idx_ch_oi,:,i])
         lower_thresh = data_std * -1.5
@@ -115,12 +115,12 @@ for f in tmp_fnms:
             tmp_color = cfg_pupil_plot_colors[0]
             tmp_label = 'visual'
         elif 4 <= i < 8:
-            tmp_color = cfg_pupil_plot_colors[1] 
+            tmp_color = cfg_pupil_plot_colors[1]
             tmp_label = 'auditiv-visual'
         elif 8 <= i <12:
             tmp_color = cfg_pupil_plot_colors[2]
-            tmp_label = 'auditiv'      
-        
+            tmp_label = 'auditiv'
+
         id.append(sub.id)
         n_trial.append(i)
 
@@ -129,8 +129,8 @@ for f in tmp_fnms:
         idx_outlier = np.logical_or(diameter < lower_thresh, diameter > upper_thresh)
         idx_low_conf = eps.data[0,:,i] < 0.5
 
-        per_bad_diff_ep = np.sum(np.diff(eps.data[cfg_idx_eye,:,i]) > 0.075) / len(eps.data[:,:,i]) 
-        per_bad_dia_ep = np.sum(eps.data[cfg_idx_eye,:,i] < 1.5) / len(eps.data[:,:,i]) 
+        per_bad_diff_ep = np.sum(np.diff(eps.data[cfg_idx_eye,:,i]) > 0.075) / len(eps.data[:,:,i])
+        per_bad_dia_ep = np.sum(eps.data[cfg_idx_eye,:,i] < 1.5) / len(eps.data[:,:,i])
         per_bad_conf_ep = np.sum([idx_low_conf,idx_outlier]) / len(idx_low_conf)
         per_bad_samples.append(max(per_bad_diff_ep, per_bad_dia_ep, per_bad_conf_ep))
 
@@ -172,7 +172,7 @@ for f in tmp_fnms:
     ymin, ymax = axd["top"].get_ylim()
     xmin, xmax = axd["top"].get_xlim()
     cfg_patch_trial = patches.Rectangle((cfg_time_trial[0],ymin),np.diff(cfg_time_trial),(ymax + np.abs(ymin)),alpha = .1, color = 'grey')
-    
+
     axd["top"].axvline(0,c='k')
     axd["top"].add_patch(cfg_patch_trial)
     axd["top"].annotate("Trial average", (np.sum(cfg_time_trial) * .5, ymax * .9), color='Black', weight='bold', fontsize=10, ha='center', va='top')
@@ -182,16 +182,16 @@ for f in tmp_fnms:
     axd["top"].set_ylabel('Baseline corrected diameter [mm^2]')
     axd["top"].set_title(f"{sub.id} pupil epochs")
     axd["top"].set_xlim([cfg_time_ep_pupil[0] - 1, cfg_time_ep_pupil[1]])
-    axd["top"].legend(loc = 2) # set legend upper left 
-    
-    
+    axd["top"].legend(loc = 2) # set legend upper left
+
+
     sns.kdeplot(data = sub_trials, x = "bl_sizes", hue= "feedback_condition", ax = axd["left"], fill=True, common_norm=False, palette=cfg_pupil_plot_colors,alpha=.5, linewidth=0)
     axd["left"].set_title('Baseline sizes')
-    
+
 
     sns.kdeplot(data = sub_trials, x = "ppl_size", hue= "feedback_condition", ax = axd["right"], fill=True, common_norm=False, palette=cfg_pupil_plot_colors,alpha=.5, linewidth=0)
     axd["right"].set_title('Pupil sizes')
-    
+
     fig.tight_layout()
     fig.savefig(Path.joinpath(dir_plots,f"{sub.id}_pupil_epochs.png"))
     fig.clf()
@@ -247,3 +247,16 @@ print(f'Differences for group deltas in auditiv-visual only for pupil size is t=
 print(f'Differences for group deltas in auditiv only for pupil size is t={t_ao:.2f}, p:{p_ao:.3f}')
 
 print(len(low_ao) + len(high_ao))
+
+
+#############################
+# plot figure 1 - single trial fsr averages
+
+#############################
+# plot figure 2 - single trial pupil averages
+
+#############################
+# plot figure 3a - single trial time course fsr
+
+#############################
+# plot figure 3b - single trial time course pupil
