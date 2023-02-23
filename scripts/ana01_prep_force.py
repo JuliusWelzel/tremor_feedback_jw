@@ -1,6 +1,3 @@
-%reload_ext autoreload
-%autoreload 2
-
 import os
 import numpy as np
 import pandas as pd
@@ -9,6 +6,7 @@ from scipy.signal import medfilt, butter, sosfilt
 import matplotlib.pyplot as plt
 from matplotlib.collections import PolyCollection
 from matplotlib.gridspec import GridSpec
+import pickle
 from tueplots import bundles
 from mne import set_log_level
 from mne.time_frequency import psd_array_welch
@@ -26,6 +24,7 @@ from src.config import (
     cfg_bandpass_order,
     cfg_trmr_win_oi,
     cfg_mov_win_oi,
+    cfg_colors
 )
 
 # import relevant dirs
@@ -43,7 +42,7 @@ plt.rcParams.update(
 )
 
 # set params for epoch processing and plotting for force data
-cfg_fsr_plot_colors = plt.cm.viridis(np.linspace(0, 1, 3))
+cfg_fsr_plot_colors = cfg_colors["condition_colors"]
 cfg_plot_lw = 1.5
 
 # find all relevant files
@@ -99,12 +98,18 @@ for f in tmp_fnms:
         resample_epochs=True,
     )
 
+    # create a binary pickle file to store normalised epochs of fsr data per subject
+    tmp_fname = Path.joinpath(dir_prep,sub.id + "_clean_fsr_eps.pkl")
+
+    with open(tmp_fname, 'wb') as handle:
+        pickle.dump(eps, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
     # define cfgs from loaded epochs
     cfg_filter = butter(
         cfg_bandpass_order, cfg_bandpass_freq, "bp", fs=eps.srate, output="sos"
     )
     cfg_epoch_timevec = eps.times
-    cfg_fsr_psd_colors = plt.cm.viridis(np.linspace(0, 1, eps.data.shape[2]))
+    cfg_fsr_psd_colors = cfg_colors["trial_colors"]
 
     # zscore per condition
     # extract viewing angle from epoch object
@@ -209,7 +214,7 @@ for f in tmp_fnms:
 
     ep_range = range(len(psds_trmr))
     verts = [polygon_under_graph(freqs_trmr, psd.T) for psd in psds_trmr]
-    poly = PolyCollection(verts, facecolors=cfg_fsr_plot_colors, alpha=0.7)
+    poly = PolyCollection(verts, facecolors=cfg_fsr_psd_colors, alpha=0.7)
     ax5.add_collection3d(poly, zs=ep_range, zdir="y")
 
     # plot distribution and scatter

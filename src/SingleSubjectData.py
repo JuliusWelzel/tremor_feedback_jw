@@ -9,7 +9,7 @@ import numpy as np
 from src.utl import find_lsl_stream, find_nearest
 
 class SubjectData:
-    
+
     def __init__(self):
         # when the mediapipe is first started, it detects the hands. After that it tries to track the hands
         # as detecting is more time consuming than tracking. If the tracking confidence goes down than the
@@ -30,7 +30,7 @@ class SubjectData:
         self.n_blinks = None
         self.per_bad_eye = None
         self.freq_tremor = None
-        
+
     def load_data(self,datapath,fname):
         # extract generic infos from file
         self.id = fname.split('_')[0]
@@ -43,7 +43,7 @@ class SubjectData:
         self.fsr  = find_lsl_stream(streams, 'HX711')
         self.mrk = find_lsl_stream(streams, 'PsychoPyMarkers')
         self.eye = find_lsl_stream(streams, 'pupil_capture')
-        
+
         # find max force if avaliable
         try:
             nms_mrk = [nm_mrk for mrk_ in self.mrk["time_series"] for nm_mrk in mrk_]
@@ -66,8 +66,8 @@ class SubjectData:
         elif not self.eye:
             self.srate_ppl = np.nan
             self.per_bad_eye = np.nan
-            
-            
+
+
 
 class Epochs:
     """Epochs object from numpy array.
@@ -96,15 +96,16 @@ class Epochs:
     """
 
     def __init__(self, subject, data, times, events=None, event_id=None, srate = None, max_force = None,):
-        
+
         if not subject.eye:
             time_0_eye = np.nan
         else:
-            time_0_eye = min(subject.eye["time_stamps"])     
-        
+            time_0_eye = min(subject.eye["time_stamps"])
+
         time_0 = np.nanmin([time_0_eye,min(subject.fsr["time_stamps"])])
         self.srate = srate
         self.max_force = max_force
+        self.bl_correct = False
 
         # prep inputs
         if data.ndim == 1:
@@ -114,7 +115,7 @@ class Epochs:
 
         # sort according to timestamps
         idx_ts = np.argsort(self.times)
-        self.data = self.data[:,idx_ts]   
+        self.data = self.data[:,idx_ts]
         self.times = self.times[idx_ts]
 
         # translate events from xdf to pd
@@ -134,7 +135,7 @@ class Epochs:
                             'n_samples, n_epochs)')
         if not srate:
             raise AttributeError('Sampling rate must be spcified')
-        
+
     def epoch(self, event_id, idx_start = 0, tmin=-0.2, tmax=0.5, resample_epochs = False, time_offset = 0):
 
         if self.data.ndim == 3:
@@ -142,7 +143,7 @@ class Epochs:
 
         if not event_id:
             raise AttributeError('Specify event_id for epoching')
-    
+
         self.events = self.events.iloc[idx_start:]
         # extract times for mathcing events
         idx_event_id = self.events[self.events["value"].str.match(event_id)].index
@@ -164,7 +165,7 @@ class Epochs:
         n_samples_epoch = abs(ep_win_to_start) + ep_win_to_end
         data_epoched = np.ones(shape=(self.data.shape[0], int(n_samples_epoch ), n_epochs))
 
-        # specify time vector for epoch 
+        # specify time vector for epoch
         self.times = np.linspace(0, int(n_samples_epoch / self.srate), n_samples_epoch ) + time_offset
 
         # do the actual epoching
@@ -177,8 +178,3 @@ class Epochs:
             data_epoched[:,:,i] = tmp_epoch
 
         self.data = data_epoched
-        
-
-        
-
-        

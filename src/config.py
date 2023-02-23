@@ -9,7 +9,8 @@ Configuration parameters for the study.
 import os
 from socket import getfqdn
 from pathlib import Path
-
+import matplotlib.pyplot as plt
+import numpy as np
 
 def define_dir(root, name):
     """define_dir create path handle and creates dir if not existend.
@@ -71,3 +72,12 @@ cfg_time_bl = [-10, -2]  # s
 cfg_time_trial = [5, 20]  # s
 cfg_time_ep_fsr = [0, 30]  # s
 cfg_time_ep_pupil = [-12, 30]  # s
+
+###############################################################################
+# These are all the relevant colors settings for the analysis
+
+
+condition_colors = plt.cm.viridis(np.linspace(0, 1, 3))
+trial_colors = plt.cm.viridis(np.linspace(0, 1, 12))
+
+cfg_colors = {"condition_colors": condition_colors, "trial_colors": trial_colors}
