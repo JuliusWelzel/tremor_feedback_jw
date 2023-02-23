@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import PolyCollection
 from matplotlib.gridspec import GridSpec
 from matplotlib import patches
+import pickle
 from tueplots import bundles
 from astropy.convolution import convolve_fft, Gaussian1DKernel
 from mne import set_log_level
@@ -29,7 +30,8 @@ from src.config import (
     cfg_bandpass_freq,
     cfg_bandpass_order,
     cfg_trmr_win_oi,
-    cfg_mov_win_oi
+    cfg_mov_win_oi,
+    cfg_colors
 )
 
 # import relevant dirs
@@ -47,9 +49,10 @@ plt.rcParams.update(
 )
 
 # set params for epoch processing and plotting for force data
-cfg_pupil_plot_colors = plt.cm.viridis(np.linspace(0, 1, 3))
+cfg_pupil_plot_colors = cfg_colors["condition_colors"]
 cfg_plot_lw = 1.5
 cfg_idx_eye = 21
+cfg_do_bl_corr = True
 
 # pupil preprocessing
 cfg_conv_kernel_sz = 100  # samples
@@ -63,6 +66,7 @@ fnms = [s for s in f_list if str_match in s]
 # prelocate variables
 tmp_fnms = fnms.copy()
 
+
 id = []
 n_trial = []
 con_view_ang = []
@@ -74,6 +78,7 @@ bl_sizes = []
 ####################################################
 # prep every participant
 for f in tmp_fnms:
+
     sub = SubjectData()
     sub.load_data(dir_rawdata,f)
 
@@ -82,8 +87,8 @@ for f in tmp_fnms:
         continue
 
     # skip participant if more than 25% of pupil data is artifact (Murphy, 2014)
-    per_bad_diff = np.sum(np.diff(sub.eye["time_series"][:,cfg_idx_eye]) > 0.075) / len(sub.eye["time_series"][:,0]) 
-    per_bad_dia = np.sum(sub.eye["time_series"][:,cfg_idx_eye] < 1.5) / len(sub.eye["time_series"][:,0])  
+    per_bad_diff = np.sum(np.diff(sub.eye["time_series"][:,cfg_idx_eye]) > 0.075) / len(sub.eye["time_series"][:,0])
+    per_bad_dia = np.sum(sub.eye["time_series"][:,cfg_idx_eye] < 1.5) / len(sub.eye["time_series"][:,0])
     if per_bad_diff > 0.25 or per_bad_dia > 0.25:
         flag_dataset_artifact = True
 
@@ -98,15 +103,15 @@ for f in tmp_fnms:
 
     # cfgs for epoched data
     ch_oi = ['diameter1_3d']
-    idx_ch_oi = [nms_ppl.index(key) for key in ch_oi]   
+    idx_ch_oi = [nms_ppl.index(key) for key in ch_oi]
 
     tmp_view_angle = eps.events["value"][eps.events["value"].str.contains('sfb') ].str.split('_').str[3].astype(float).round(2)
 
-    fig, axd = plt.subplot_mosaic([['top', 'top'],['left', 'right']],
-                                constrained_layout=True)
+    fig, axd = plt.subplots(figsize=[18,6])
+
     # prep single trial pupil data
     for i in range(eps.data.shape[2]):
-            
+
         data_median  =  np.nanmedian(eps.data[idx_ch_oi,:,i])
         data_std     = np.nanstd(eps.data[idx_ch_oi,:,i])
         lower_thresh = data_std * -1.5
@@ -116,12 +121,12 @@ for f in tmp_fnms:
             tmp_color = cfg_pupil_plot_colors[0]
             tmp_label = 'visual'
         elif 4 <= i < 8:
-            tmp_color = cfg_pupil_plot_colors[1] 
+            tmp_color = cfg_pupil_plot_colors[1]
             tmp_label = 'auditiv-visual'
         elif 8 <= i <12:
             tmp_color = cfg_pupil_plot_colors[2]
-            tmp_label = 'auditiv'      
-        
+            tmp_label = 'auditiv'
+
         id.append(sub.id)
         n_trial.append(i)
 
@@ -130,8 +135,8 @@ for f in tmp_fnms:
         idx_outlier = np.logical_or(diameter < lower_thresh, diameter > upper_thresh)
         idx_low_conf = eps.data[0,:,i] < 0.5
 
-        per_bad_diff_ep = np.sum(np.diff(eps.data[cfg_idx_eye,:,i]) > 0.075) / len(eps.data[:,:,i]) 
-        per_bad_dia_ep = np.sum(eps.data[cfg_idx_eye,:,i] < 1.5) / len(eps.data[:,:,i]) 
+        per_bad_diff_ep = np.sum(np.diff(eps.data[cfg_idx_eye,:,i]) > 0.075) / len(eps.data[:,:,i])
+        per_bad_dia_ep = np.sum(eps.data[cfg_idx_eye,:,i] < 1.5) / len(eps.data[:,:,i])
         per_bad_conf_ep = np.sum([idx_low_conf,idx_outlier]) / len(idx_low_conf)
         per_bad_samples.append(max(per_bad_diff_ep, per_bad_dia_ep, per_bad_conf_ep))
 
@@ -155,9 +160,13 @@ for f in tmp_fnms:
             ls = 'solid'
 
         if i in [0,4,8]:
-            axd["top"].plot(epoch_timevec,smooth,color=tmp_color,linewidth=cfg_plot_lw, alpha=.5, linestyle = ls, label=tmp_label)
+            axd.plot(epoch_timevec,smooth,color=tmp_color,linewidth=cfg_plot_lw, alpha=.5, linestyle = ls, label=tmp_label)
         else:
-            axd["top"].plot(epoch_timevec,smooth,color=tmp_color,linewidth=cfg_plot_lw, alpha=.5, linestyle = ls)
+            axd.plot(epoch_timevec,smooth,color=tmp_color,linewidth=cfg_plot_lw, alpha=.5, linestyle = ls)
+
+        if cfg_do_bl_corr:
+            eps.bl_correct = True
+            eps.data[cfg_idx_eye,:,i] = smooth
 
 
     # info per epoch
@@ -170,32 +179,30 @@ for f in tmp_fnms:
     sub_trials["bl_sizes"] = bl_sizes[-11:]
 
     # plot all trials and histograms of BL and Pupil size
-    ymin, ymax = axd["top"].get_ylim()
-    xmin, xmax = axd["top"].get_xlim()
+    ymin, ymax = axd.get_ylim()
+    xmin, xmax = axd.get_xlim()
     cfg_patch_trial = patches.Rectangle((cfg_time_trial[0],ymin),np.diff(cfg_time_trial),(ymax + np.abs(ymin)),alpha = .1, color = 'grey')
-    
-    axd["top"].axvline(0,c='k')
-    axd["top"].add_patch(cfg_patch_trial)
-    axd["top"].annotate("Trial average", (np.sum(cfg_time_trial) * .5, ymax * .9), color='Black', weight='bold', fontsize=10, ha='center', va='top')
-    axlines_with_text(axd["top"],cfg_time_bl[0], 'BL start', axis='x')
-    axlines_with_text(axd["top"],cfg_time_bl[1], 'BL end', axis='x')
-    axd["top"].set_xlabel('Time[s]')
-    axd["top"].set_ylabel('Baseline corrected diameter [mm^2]')
-    axd["top"].set_title(f"{sub.id} pupil epochs")
-    axd["top"].set_xlim([cfg_time_ep_pupil[0] - 1, cfg_time_ep_pupil[1]])
-    axd["top"].legend(loc = 2) # set legend upper left 
-    
-    
-    sns.kdeplot(data = sub_trials, x = "bl_sizes", hue= "feedback_condition", ax = axd["left"], fill=True, common_norm=False, palette=cfg_pupil_plot_colors,alpha=.5, linewidth=0)
-    axd["left"].set_title('Baseline sizes')
-    
 
-    sns.kdeplot(data = sub_trials, x = "ppl_size", hue= "feedback_condition", ax = axd["right"], fill=True, common_norm=False, palette=cfg_pupil_plot_colors,alpha=.5, linewidth=0)
-    axd["right"].set_title('Pupil sizes')
-    
+    axd.axvline(0,c='k')
+    axd.add_patch(cfg_patch_trial)
+    axd.annotate("Trial average", (np.sum(cfg_time_trial) * .5, ymax * .9), color='Black', weight='bold', fontsize=10, ha='center', va='top')
+    axlines_with_text(axd,cfg_time_bl[0], 'BL start', axis='x')
+    axlines_with_text(axd,cfg_time_bl[1], 'BL end', axis='x')
+    axd.set_xlabel('Time[s]')
+    axd.set_ylabel('Baseline corrected diameter [mm^2]')
+    axd.set_title(f"{sub.id} pupil epochs")
+    axd.set_xlim([cfg_time_ep_pupil[0] - 1, cfg_time_ep_pupil[1]])
+    axd.legend(loc = 2) # set legend upper left
+
     fig.tight_layout()
     fig.savefig(Path.joinpath(dir_plots,f"{sub.id}_pupil_epochs.png"))
     fig.clf()
+
+    # create a binary pickle file to store normalised epochs of pupil data per subject
+    tmp_fname = Path.joinpath(dir_prep, sub.id + "_clean_pupil_eps.pkl")
+
+    with open(tmp_fname, 'wb') as handle:
+        pickle.dump(eps, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 ####################################################
 # move to overview table
@@ -224,7 +231,7 @@ all_trials.to_csv(Path.joinpath(dir_prep,fname), index=False, index_label=False)
 from scipy.stats import ttest_ind
 from scipy import stats
 df = all_trials
-ppl_z = np.abs(stats.zscore(df['Pupil size']))
+ppl_z = np.abs(stats.zscore(df['Pupil size'], nan_policy='omit'))
 df = df[ppl_z <  3]
 df_stats = df[df["Percentage bad pupil samples"] > 0.5]
 
