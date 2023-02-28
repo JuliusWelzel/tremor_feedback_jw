@@ -77,7 +77,9 @@ cfg_time_ep_pupil = [-12, 30]  # s
 # These are all the relevant colors settings for the analysis
 
 
-condition_colors = plt.cm.viridis(np.linspace(0, 1, 3))
-trial_colors = plt.cm.viridis(np.linspace(0, 1, 12))
+condition_colors = plt.cm.viridis(np.linspace(0, 1, 8))
+condition_colors = condition_colors[[0,4,7],:]
+#trial_colors = plt.cm.viridis(np.linspace(0, 1, 12))
+trial_colors = condition_colors.repeat(4,0)
 
 cfg_colors = {"condition_colors": condition_colors, "trial_colors": trial_colors}

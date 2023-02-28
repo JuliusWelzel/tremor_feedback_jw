@@ -41,11 +41,10 @@ import src.pupil_prep as pp
 
 print(f"Data imported from {dir_rawdata}")
 
-
 # Increase the resolution of all the plots below
 bundles.beamer_moml()
 plt.rcParams.update(
-    {"figure.dpi": 200, "figure.facecolor": "w", "figure.figsize": (15, 10)}
+    {"figure.dpi": 300, "figure.facecolor": "w", "figure.figsize": (15, 10)}
 )
 
 # set params for epoch processing and plotting for force data
@@ -105,9 +104,10 @@ for f in tmp_fnms:
     ch_oi = ['diameter1_3d']
     idx_ch_oi = [nms_ppl.index(key) for key in ch_oi]
 
+    idx_solid = []
     tmp_view_angle = eps.events["value"][eps.events["value"].str.contains('sfb') ].str.split('_').str[3].astype(float).round(2)
 
-    fig, axd = plt.subplots(figsize=[18,6])
+    fig, axd = plt.subplots(figsize=[18,6], dpi = 300)
 
     # prep single trial pupil data
     for i in range(eps.data.shape[2]):
@@ -158,6 +158,7 @@ for f in tmp_fnms:
             ls = 'dotted'
         elif tmp_view_angle.iloc[i] == .44:
             ls = 'solid'
+            idx_solid.append(i)
 
         if i in [0,4,8]:
             axd.plot(epoch_timevec,smooth,color=tmp_color,linewidth=cfg_plot_lw, alpha=.5, linestyle = ls, label=tmp_label)
@@ -179,9 +180,13 @@ for f in tmp_fnms:
     sub_trials["bl_sizes"] = bl_sizes[-11:]
 
     # plot all trials and histograms of BL and Pupil size
+    axd.set_xlim([cfg_time_ep_pupil[0] - 1, cfg_time_ep_pupil[1]])
+    axd.set_ylim([np.nanmin(eps.data[cfg_idx_eye,:,:]) * 1.1,np.nanmax(eps.data[cfg_idx_eye,:,:]) * 1.1])
+
+    # plot all trials and histograms of BL and Pupil size
     ymin, ymax = axd.get_ylim()
     xmin, xmax = axd.get_xlim()
-    cfg_patch_trial = patches.Rectangle((cfg_time_trial[0],ymin),np.diff(cfg_time_trial),(ymax + np.abs(ymin)),alpha = .1, color = 'grey')
+    cfg_patch_trial = patches.Rectangle((cfg_time_trial[0],ymin),np.diff(cfg_time_trial),(ymax + np.abs(ymin)),alpha = .05, color = 'grey')
 
     axd.axvline(0,c='k')
     axd.add_patch(cfg_patch_trial)
@@ -190,11 +195,22 @@ for f in tmp_fnms:
     axlines_with_text(axd,cfg_time_bl[1], 'BL end', axis='x')
     axd.set_xlabel('Time[s]')
     axd.set_ylabel('Baseline corrected diameter [mm^2]')
-    axd.set_title(f"{sub.id} pupil epochs")
-    axd.set_xlim([cfg_time_ep_pupil[0] - 1, cfg_time_ep_pupil[1]])
-    axd.legend(loc = 2) # set legend upper left
+    #axd.set_title(f"{sub.id} pupil epochs")
+
+        # setup two level legend
+    #dummy lines with NO entries, just to create the black style legend
+    dummy_lines = []
+    linestyles = ['solid','dotted']
+    for style in linestyles:
+        dummy_lines.append(axd.plot([],[], c="black", ls = style)[0])
+
+    lines = axd.get_lines()
+    legend1 = plt.legend([lines[i] for i in idx_solid[::2]], ["visual", "auditiv-visual","auditiv"], loc = 2)
+    legend2 = axd.legend([dummy_lines[i] for i in [0,1]], ["high", "low"], loc = 1)
+    axd.add_artist(legend1)
 
     fig.tight_layout()
+    sns.despine(fig=fig)
     fig.savefig(Path.joinpath(dir_plots,f"{sub.id}_pupil_epochs.png"))
     fig.clf()
 

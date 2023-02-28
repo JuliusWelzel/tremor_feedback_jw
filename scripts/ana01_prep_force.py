@@ -179,7 +179,7 @@ for f in tmp_fnms:
             )
 
         idx_times_oi = np.logical_and(
-            eps.times >= cfg_time_ep_fsr[0], eps.times <= cfg_time_ep_fsr[1]
+            eps.times >= cfg_time_trial[0], eps.times <= cfg_time_trial[1]
         )
         filt_trmr = sosfilt(cfg_filter, eps.data[0, idx_times_oi, i])
         tmp_psd_trmr, freqs_trmr = psd_array_welch(
@@ -259,7 +259,7 @@ for f in tmp_fnms:
     ax2.autoscale(enable=True, axis="y", tight=True)
     ax3.autoscale(enable=True, axis="y", tight=True)
 
-    ax5.set_xlim(2, 14)
+    ax5.set_xlim(cfg_trmr_win_oi)
     ax5.view_init(35, -80)
     ax5.set_xlabel("Frequency [Hz]")
     ax5.set_zlabel(r"PSD [$\dfrac{V^2}{Hz}$]")
