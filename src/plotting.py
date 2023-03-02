@@ -16,7 +16,7 @@ from src.config import (
     cfg_bandpass_order,
     cfg_trmr_win_oi,
     cfg_colors,
-    dir_plots,
+    dir_single_trial_plots,
 )
 
 plt.rcParams.update(
@@ -91,7 +91,7 @@ def single_trial_force_raw(eps,id):
 
     fig.tight_layout()
     sns.despine(fig=fig)
-    fig.savefig(Path.joinpath(dir_plots,f"{id}_fsr_epochs.png"))
+    fig.savefig(Path.joinpath(dir_single_trial_plots,f"{id}_fsr_epochs.png"))
     fig.clf()
 
 
@@ -158,4 +158,4 @@ def single_trial_specs(eps, id):
     formatter.set_powerlimits((-1,1))
     ax.zaxis.set_major_formatter(formatter)
 
-    fig.savefig(Path.joinpath(dir_plots, f"{id}_single_trial_trmr.png"))
+    fig.savefig(Path.joinpath(dir_single_trial_plots, f"{id}_single_trial_trmr.png"))

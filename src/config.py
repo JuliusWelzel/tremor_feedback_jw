@@ -52,7 +52,8 @@ dir_proj = Path(r"C:\Users\User\Desktop\kiel\tremor_feedback_jw\src").parent.abs
 dir_rawdata = define_dir(Path.joinpath(dir_proj, "data"), "00_raw")
 dir_prep = define_dir(Path.joinpath(dir_proj, "data"), "01_prep")
 dir_stats = define_dir(Path.joinpath(dir_proj, "data"), "02_stats")
-dir_plots = Path.joinpath(dir_proj, "plots", "01_single_trial")
+dir_plots_single_trial = define_dir(Path.joinpath(dir_proj, "plots"), "01_single_trial")
+dir_plots_group_cmpr = define_dir(Path.joinpath(dir_proj, "plots"), "02_group_comparisons")
 
 ###############################################################################
 # These are all the relevant parameters for the analysis.
@@ -81,5 +82,6 @@ condition_colors = plt.cm.viridis(np.linspace(0, 1, 8))
 condition_colors = condition_colors[[0,4,7],:]
 #trial_colors = plt.cm.viridis(np.linspace(0, 1, 12))
 trial_colors = condition_colors.repeat(4,0)
+group_colors = plt.cm.magma(np.linspace(0, 1, 4))[[1,2],:]
 
-cfg_colors = {"condition_colors": condition_colors, "trial_colors": trial_colors}
+cfg_colors = {"condition_colors": condition_colors, "trial_colors": trial_colors, "group_colors": group_colors}
