@@ -37,6 +37,9 @@ host = getfqdn()  # Hostname of the machine running the scripts
 if user == "User":
     # Julius Workstation
     dir_proj = Path(r"C:\Users\User\Desktop\kiel\tremor_feedback_jw")
+elif: user == 'juliu'
+    # Julius Laptop
+    dir_proj = Path(r"C:\Users\juliu\Desktop\kiel\tremor_feedback_jw")
 else:
     raise RuntimeError(
         "Please edit src/config.py and set the dir_proj "
