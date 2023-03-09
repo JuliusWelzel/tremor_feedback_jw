@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
 from scipy.interpolate import interp1d
@@ -84,6 +85,24 @@ def find_nearest(array, value):
     idx = (np.abs(array - value)).argmin()
     return idx
 
+def convert_pvalue_to_asterisks(pvalue):
+    """Convert p-values to visual expression (sigstars) 
+
+    Args:
+        pvalue (float): statistical value
+
+    Returns:
+        str: Matching sigstars to p-value
+    """
+    if pvalue <= 0.0001:
+        return "****"
+    elif pvalue <= 0.001:
+        return "***"
+    elif pvalue <= 0.01:
+        return "**"
+    elif pvalue <= 0.05:
+        return "*"
+    return "ns"
 
 # Create a function to match individuals by gender and age
 def match_groups(group1, group2, key):
@@ -276,3 +295,15 @@ def remove_outliers_df(df, columns, n_std):
         ]
 
     return df
+
+def get_log_ax(orient="v"):
+    if orient == "v":
+        figsize = (12, 6)
+        set_scale = "set_yscale"
+    else:
+        figsize = (10, 8)
+        set_scale = "set_xscale"
+    fig, ax = plt.subplots(1, 1, figsize=figsize)
+    #fig.patch.set_alpha(1)
+    #getattr(ax, set_scale)("log")
+    return ax
