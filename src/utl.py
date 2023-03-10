@@ -285,7 +285,7 @@ def remove_outliers_df(df, columns, n_std):
 
         print("Working on column: {}".format(col))
 
-        mean = df[col].mean()
+        mean = df[col].median()
         sd = df[col].std()
 
         df = df[
