@@ -106,7 +106,7 @@ def convert_pvalue_to_asterisks(pvalue):
 
 # Create a function to match individuals by gender and age
 def match_groups(group1, group2, key):
-    """_summary_
+    """This function matches data from two cohorts located in PD DFs based on a list of variables.
 
     Args:
         group1 (df): PD df with data from group 1
