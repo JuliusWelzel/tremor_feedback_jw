@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
 from scipy.interpolate import interp1d
-
+from scipy.stats import pearsonr
 
 def moving_average_window(data, win_size):
     """Implementation of moving average rolling window
@@ -307,3 +307,31 @@ def get_log_ax(orient="v"):
     #fig.patch.set_alpha(1)
     #getattr(ax, set_scale)("log")
     return ax
+
+
+def nan_pearsonr(x, y):
+    """Calculate Pearson correlation coefficient between two arrays,
+    ignoring any NaN values.
+    
+    Parameters
+    ----------
+    x, y : array-like
+        Input arrays. Must have the same shape.
+        
+    Returns
+    -------
+    r : float
+        Pearson correlation coefficient, ignoring any NaN values.
+    p : float
+        Two-tailed p-value.
+    """
+    
+    # Remove NaN values from input arrays
+    mask = np.logical_not(np.logical_or(np.isnan(x), np.isnan(y)))
+    x_clean = x[mask]
+    y_clean = y[mask]
+    
+    # Calculate Pearson correlation coefficient
+    r, p = pearsonr(x_clean, y_clean)
+    
+    return r, p
