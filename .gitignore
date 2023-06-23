@@ -39,3 +39,5 @@ utilities/__pycache__/__init__.cpython-38.pyc
 
 # specific files
 !04_data/00_raw/*.csv
+!/data/00_raw/behav_data.xlsx
+!/data/00_raw/overview_data.csv
