@@ -41,3 +41,9 @@ utilities/__pycache__/__init__.cpython-38.pyc
 !04_data/00_raw/*.csv
 !/data/00_raw/behav_data.xlsx
 !/data/00_raw/overview_data.csv
+!/data/01_prep/all_trials_fsr.csv
+!/data/01_prep/all_trials_gss.csv
+!/data/01_prep/all_trials_pupil.csv
+!/data/01_prep/overview_cohort.csv
+!/data/01_prep/overview_all_trials.csv
+!/data/01_prep/overview_all_trials_archer_rep.csv
