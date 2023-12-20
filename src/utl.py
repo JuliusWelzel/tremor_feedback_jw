@@ -335,3 +335,37 @@ def nan_pearsonr(x, y):
     r, p = pearsonr(x_clean, y_clean)
     
     return r, p
+
+def butter_bandpass(lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = signal.butter(order, [low, high], btype="bandpass", analog=False)
+    return b, a
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=5, axis = 0):
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    y = signal.filtfilt(b, a, data, axis = axis)
+    return y
+
+
+def estimate_power(filt_data, srate, foi=[4, 12]):
+    """Estimate power in a frequency band using the welch method
+
+    Args:
+        filt_data (ndarray): Filtered data
+        srate (int): Sampling rate of data
+        foi (list, optional): Frequency band of interest. Defaults to [4, 12].
+
+    Returns:
+        float: Power in frequency band
+    """
+    freqs, Pxx_spec = signal.welch(
+        filt_data, srate, window="hamming", nperseg=srate, scaling="spectrum", axis=0
+    )
+
+    # get indices of frequency band oi
+    idx_foi_oi = np.where((freqs >= foi[0]) & (freqs <= foi[1]))
+    power = Pxx_spec[idx_foi_oi].sum()
+
+    return power

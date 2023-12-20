@@ -9,6 +9,30 @@ import numpy as np
 from src.utl import find_lsl_stream, find_nearest
 
 class SubjectData:
+    """SubjectData object from xdf file.
+
+    Parameters
+    ----------
+    data : array, shape (n_epochs, n_channels, n_times)
+        The channels' time series for each epoch. See notes for proper units of
+        measure.
+    events : None | array of int, shape (n_events, 3)
+        The events typically returned by the read_events function.
+        If some events don't match the events of interest as specified
+        by event_id, they will be marked as 'IGNORED' in the drop log.
+        If None (default), all event values are set to 1 and event time-samples
+        are set to range(n_epochs).
+    tmin : float
+        Start time before event. If nothing provided, defaults to 0.
+    event_id : int | list of int | dict | None
+        The id of the event to consider. If dict,
+        the keys can later be used to access associated events. Example:
+        dict(auditory=1, visual=3). If int, a dict will be created with
+        the id as string. If a list, all events with the IDs specified
+        in the list are used. If None, all events will be used with
+        and a dict is created with string integer names corresponding
+        to the event id integers.
+    """
 
     def __init__(self):
         # when the mediapipe is first started, it detects the hands. After that it tries to track the hands
